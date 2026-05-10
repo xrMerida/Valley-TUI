@@ -4,20 +4,18 @@ namespace Granja;
 
 public class Granja
 {
-    private readonly float DineroInicial;
-    private float Dinero;
+    private decimal Dinero;
     private readonly int Empleados;
-    private readonly float Sueldo;
-    private Parcela[,] Parcelas;
-    private Cultivo[] Semillas;
+    private readonly decimal Sueldo;
+    private readonly Parcela[,] Parcelas;
+    private Semilla[] Semillas;
     private int MesesSimulados;
 
-    public Granja (float dinero,
+    public Granja (decimal dinero,
                    int empleados,
-                   float sueldo,
+                   decimal sueldo,
                    int filas,
-                   int columnas,
-                   Cultivo[] semillas)
+                   int columnas)
     {
         if (dinero < 0)
             throw new ArgumentException("No se puede iniciar con una deuda", nameof(dinero));
@@ -28,32 +26,54 @@ public class Granja
         if (sueldo < 0)
             throw new ArgumentException("Los empelados deben de recibir un sueldo", nameof(sueldo));
 
-        if (semillas.Length == 0)
-            throw new ArgumentException("Se debe tener almenos una semilla", nameof(sueldo));
-
-        // throw IndexOutOfRangeException cuando los valores son menores a 0
+        // lanza IndexOutOfRangeException cuando los valores son menores a 0
         Parcelas = new Parcela[columnas, filas];
         Dinero = dinero;
-        DineroInicial = dinero;
         Empleados = empleados;
         Sueldo = sueldo;
-        Semillas = semillas;
         MesesSimulados = 0;
+        Semillas = [];
     }
 
-    public bool Sembrar (Cultivo semilla, int fila, int columna)
+    public Semilla[] GetSemillas ()
+        { return Semillas; }
+    public void GuardarSemillas (Semilla nuevaSemilla)
+    {
+        // Verificar si ya poseia semillas de la nueva semilla
+        if (Semillas.Length > 0)
+        {
+            foreach (var semilla in Semillas)
+            {
+                if (semilla.GetNombre() == nuevaSemilla.GetNombre())
+                {
+                    semilla.AgregarCantidad(nuevaSemilla.GetCantidad());
+                    Dinero -= nuevaSemilla.GetPrecio() * nuevaSemilla.GetCantidad();
+                    return;
+                }
+            }
+        }
+
+        // Variable temporal para guardar las semillas almacenadas
+        Semilla[] tempSemillas = new Semilla[Semillas.Length + 1];
+        tempSemillas[^1] = nuevaSemilla;
+
+        Dinero -= nuevaSemilla.GetPrecio();
+        Semillas = tempSemillas;
+    }
+    public bool Sembrar (Semilla semilla, int fila, int columna)
     {
         // Solo permitir sembrar si esta vacio
         if (Parcelas[columna, fila].GetSemilla() != null)
             return false;
 
+        // else
         Parcelas[columna, fila].SetSemilla(semilla);
         return true;
     }
 
     public void AvanzarMes ()
     {
-        foreach (Parcela parcela in Parcelas)
+        foreach (var parcela in Parcelas)
         {
             if (parcela.GetSemilla() == null)
                 continue;
@@ -63,28 +83,37 @@ public class Granja
                 Dinero += parcela.Cosechar();
         }
 
+        MesesSimulados++;
         Dinero -= Empleados * Sueldo;
     }
 
-    public float IngresosEsperados ()
-    {
-        float ingresosEsperados = Dinero;
-        foreach (Parcela parcela in Parcelas)
-        {
-            if (parcela.GetSemilla() == null)
-                continue;
+    public decimal GetCostosEsperados ()
+        { return Empleados * Sueldo; }
 
+    public int GetMesesSimulados ()
+        { return MesesSimulados; }
+    public decimal GetIngresosEsperados ()
+    {
+        decimal ingresosEsperados = Dinero;
+        foreach (var parcela in Parcelas)
+        {
             // Si no se puede crecer significa que esta lista para cosechar
             if (!parcela.PuedeCrecer())
                 ingresosEsperados += parcela.GetIngresos();
         }
 
         // Calcular los costos
-        ingresosEsperados -= Empleados * Sueldo;
+        ingresosEsperados -= GetCostosEsperados();
 
         return ingresosEsperados;
     }
 
-    public float Utilidad ()
-        { return Dinero - (Empleados * Sueldo); }
+    public decimal GetDinero ()
+        { return Dinero; }
+
+    public decimal GetUtilidad ()
+        { return Dinero - GetCostosEsperados(); }
+
+    public Parcela[,] GetParcelas ()
+        { return Parcelas; }
 }

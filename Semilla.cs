@@ -2,14 +2,18 @@
 
 namespace Granja;
 
-public class Cultivo
+public class Semilla
 {
     private readonly string Nombre;
     private readonly int Meses;
-    private readonly float Precio;
-    private readonly float Ingresos;
+    private readonly decimal Precio;
+    private readonly decimal Ingresos;
+    private int Cantidad;
 
-    public Cultivo (string nombre, int meses, float precio, float ingresos)
+    public Semilla (string nombre,
+                    int meses,
+                    decimal precio,
+                    decimal ingresos)
     {
         if (string.IsNullOrWhiteSpace(nombre))
             throw new ArgumentException("Nombre es obligatorio", nameof(nombre));
@@ -27,6 +31,7 @@ public class Cultivo
         Meses = meses;
         Precio = precio;
         Ingresos = ingresos;
+        Cantidad = 0;
     }
 
     public string GetNombre ()
@@ -35,9 +40,31 @@ public class Cultivo
     public int GetMeses ()
         { return Meses; }
 
-    public float GetPrecio ()
+    public decimal GetPrecio ()
         { return Precio; }
 
-    public float GetIngresos ()
+    public decimal GetIngresos ()
         { return Ingresos; }
+
+    public int GetCantidad ()
+        { return Cantidad; }
+
+    public bool AgregarCantidad (int cantidad)
+    {
+        if (cantidad <= 0)
+            return false;
+
+        // else
+        Cantidad += cantidad;
+        return true;
+    }
+    public bool SetCantidad (int cantidad)
+    {
+        if (cantidad < 0)
+            return false;
+
+        // else
+        Cantidad = cantidad;
+        return true;
+    }
 }

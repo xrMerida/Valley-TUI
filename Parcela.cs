@@ -4,10 +4,10 @@ namespace Granja;
 
 public class Parcela
 {
-    private Cultivo? Semilla;
+    private Semilla? Semilla;
     private int MesesSimulados;
 
-    public Parcela (int fila, int columna, Cultivo semilla)
+    public Parcela (int fila, int columna, Semilla semilla)
     {
         if (fila < 0)
             throw new ArgumentException("Fila debe ser un indice de arreglo valido", nameof(fila));
@@ -18,10 +18,10 @@ public class Parcela
         Semilla = semilla;
         MesesSimulados = 0;
     }
-    public Cultivo? GetSemilla ()
+    public Semilla? GetSemilla ()
         { return Semilla; }
 
-    public void SetSemilla (Cultivo semilla)
+    public void SetSemilla (Semilla semilla)
         { Semilla = semilla; }
 
     public int GetMesesSimulados ()
@@ -44,22 +44,22 @@ public class Parcela
         return true;
     }
 
-    public float GetIngresos ()
+    public decimal GetIngresos ()
     {
         if (Semilla != null)
             return Semilla.GetIngresos();
         else
-            return 0f;
+            return 0M;
     }
-    public float Cosechar ()
+    public decimal Cosechar ()
     {
         if (Semilla == null)
-            return 0f;
+            return 0M;
 
         if (MesesSimulados < Semilla.GetMeses())
-            return 0f;
+            return 0M;
 
-        float ingresos = Semilla.GetIngresos();
+        decimal ingresos = Semilla.GetIngresos();
         Semilla = null;
         return ingresos;
     }
