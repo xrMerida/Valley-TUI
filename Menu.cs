@@ -3,10 +3,11 @@ using System;
 namespace Granja;
 public static class Menu
 {
-    private static bool ManejarMenu (string[] opciones,
-                             ref int seleccionY,
-                             ref int seleccionX,
-                             bool permitirDigitos)
+    private static bool ManejarMenu (int limiteY,
+                                     int limiteX,
+                                     ref int seleccionY,
+                                     ref int seleccionX,
+                                     bool permitirDigitos)
     {
         ConsoleKeyInfo keyInfo = Console.ReadKey(true);
 
@@ -18,7 +19,7 @@ public static class Menu
             // retar 1 para obtener el indice del arreglo
             int digit = keyInfo.KeyChar - '0' - 1;
             // Solo se asignara a seleccion si la opcion existe
-            if (digit >= 0 && digit < opciones.Length)
+            if (digit >= 0 && digit < limiteY)
                 seleccionY = digit;
 
             return false;
@@ -41,6 +42,7 @@ public static class Menu
                     {
                         Console.Write("\e[2K\eM\r");
                         seleccionY = -1;
+                        seleccionX = -1;
                         return true;
                     }
                     // else
@@ -55,7 +57,7 @@ public static class Menu
                 // Siguiente opcion vertical
                 case ConsoleKey.DownArrow:
                     // Retorna a la primer opcion si esta al final
-                    if (seleccionY < opciones.Length - 1) seleccionY++;
+                    if (seleccionY < limiteY - 1) seleccionY++;
                     else seleccionY = 0;
                     return false;
 
@@ -63,21 +65,21 @@ public static class Menu
                 case ConsoleKey.UpArrow:
                     // Va a la ultima opcion si esta en el inicio
                     if (seleccionY > 0) seleccionY--;
-                    else seleccionY = opciones.Length - 1;
+                    else seleccionY = limiteY - 1;
                     return false;
 
                 // Siguiente opcion horizontal
                 case ConsoleKey.LeftArrow:
-                    // Retorna a la primer opcion si esta al final
-                    if (seleccionX < opciones.Length - 1) seleccionX++;
-                    else seleccionX = 0;
+                    // Va a la ultima opcion si esta en el inicio
+                    if (seleccionX > 0) seleccionX--;
+                    else seleccionX = limiteX - 1;
                     return false;
 
                 // Opcion anterior vertical
                 case ConsoleKey.RightArrow:
-                    // Va a la ultima opcion si esta en el inicio
-                    if (seleccionX > 0) seleccionX--;
-                    else seleccionX = opciones.Length - 1;
+                    // Retorna a la primer opcion si esta al final
+                    if (seleccionX < limiteX - 1) seleccionX++;
+                    else seleccionX = 0;
                     return false;
 
                 // Entradas invalidas
@@ -87,16 +89,16 @@ public static class Menu
         }
     }
 
-    public static bool ManejarMenuXY (string[] opciones, ref int seleccionY, ref int seleccionX)
+    public static bool ManejarMenuXY (int limiteY, int limiteX, ref int seleccionY, ref int seleccionX)
     {
         // Secuencia de escape '\e[1K' elimina la linea actual
         Console.ForegroundColor = ConsoleColor.DarkGray;
         Console.Write("\e[K\n\e[K     ←↑↓→ navegar  ↲ seleccionar  Q salir");
         Console.ResetColor();
 
-        return ManejarMenu(opciones, ref seleccionY, ref seleccionX, false);
+        return ManejarMenu(limiteY, limiteX, ref seleccionY, ref seleccionX, false);
     }
-    public static bool ManejarMenuY (string[] opciones, ref int seleccion)
+    public static bool ManejarMenuY (int limite, ref int seleccion)
     {
         // Secuencia de escape '\e[1K' elimina la linea actual
         Console.ForegroundColor = ConsoleColor.DarkGray;
@@ -105,10 +107,10 @@ public static class Menu
 
         int _ = 0;
 
-        return ManejarMenu(opciones, ref seleccion, ref _, true);
+        return ManejarMenu(limite, _, ref seleccion, ref _, true);
     }
 
-    public static void WriteSeleccion (string[] opciones, int seleccion)
+    public static void WriteSeleccionY (string[] opciones, int seleccion)
     {
         for (int i = 0; i < opciones.Length; i++)
         {

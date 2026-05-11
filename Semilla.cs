@@ -52,11 +52,27 @@ public class Semilla
     public bool AgregarCantidad (int cantidad)
     {
         if (cantidad <= 0)
-            return false;
+            { return false; }
 
-        // else
-        Cantidad += cantidad;
-        return true;
+        else
+        {
+            Cantidad += cantidad;
+            return true;
+        }
+    }
+    public bool DisminuirCantidad ()
+    {
+        if (Cantidad <= 1)
+        {
+            Cantidad = 0;
+            return false;
+        }
+
+        else
+        {
+            Cantidad--;
+            return true;
+        }
     }
     public bool SetCantidad (int cantidad)
     {

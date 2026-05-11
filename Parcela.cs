@@ -1,33 +1,30 @@
-﻿using System;
-
-namespace Granja;
+﻿namespace Granja;
 
 public class Parcela
 {
     private Semilla? Semilla;
     private int MesesSimulados;
 
-    public Parcela (int fila, int columna, Semilla semilla)
+    // Parcela vacia
+    public Parcela ()
     {
-        if (fila < 0)
-            throw new ArgumentException("Fila debe ser un indice de arreglo valido", nameof(fila));
-
-        if (columna < 0)
-            throw new ArgumentException("Columna debe ser un indice de arreglo valido", nameof(columna));
-
-        Semilla = semilla;
+        Semilla = null;
         MesesSimulados = 0;
     }
+
     public Semilla? GetSemilla ()
         { return Semilla; }
 
-    public void SetSemilla (Semilla semilla)
-        { Semilla = semilla; }
+    public void SetSemilla (Semilla? semilla)
+        {
+            MesesSimulados = 0;
+            Semilla = semilla;
+        }
 
     public int GetMesesSimulados ()
         { return MesesSimulados; }
 
-    public bool PuedeCrecer ()
+    public bool EsCosechable ()
     {
         if (Semilla == null)
             return false;
@@ -36,7 +33,7 @@ public class Parcela
     }
     public bool Crecer ()
     {
-        if (!PuedeCrecer())
+        if (!EsCosechable())
             return false;
 
         // else
@@ -61,6 +58,7 @@ public class Parcela
 
         decimal ingresos = Semilla.GetIngresos();
         Semilla = null;
+        MesesSimulados = 0;
         return ingresos;
     }
 }
