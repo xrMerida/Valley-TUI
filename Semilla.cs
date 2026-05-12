@@ -76,7 +76,7 @@ public class Semilla
     }
     public bool SetCantidad (int cantidad)
     {
-        if (cantidad < 0)
+        if (cantidad <= 0)
             return false;
 
         // else

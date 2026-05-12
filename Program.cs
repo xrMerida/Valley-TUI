@@ -13,6 +13,7 @@ static class Program
     private static string? mensajeEstado;
     private static decimal dineroInicial;
     private static decimal ingresosTotales;
+    private static decimal dineroDelMes;
     private static decimal gastosTotales;
     private static readonly Semilla[] Semillas =
         [
@@ -51,14 +52,15 @@ static class Program
             Console.WriteLine($"""
                     ------
                        Mes: {granja.GetMesesSimulados()} / {mesesTotal}
+                       Caja Inicial: ${dineroDelMes}
                        Caja: ${granja.GetDinero()}
                        Costos: ${granja.GetCostosEsperados()}
                     """);
             if (granja.GetSaldoEsperado() <= 0)
                 Console.ForegroundColor = ConsoleColor.Red;
-            else if (granja.GetSaldoEsperado() <= granja.GetDinero())
+            else if (granja.GetSaldoEsperado() <= dineroDelMes)
                 Console.ForegroundColor = ConsoleColor.DarkYellow;
-            else if (granja.GetSaldoEsperado() > granja.GetDinero())
+            else if (granja.GetSaldoEsperado() > dineroDelMes)
                 Console.ForegroundColor = ConsoleColor.DarkGreen;
             Console.WriteLine($"   Saldo esperado: ${granja.GetSaldoEsperado()}");
             Console.ForegroundColor = ConsoleColor.DarkCyan;
@@ -66,7 +68,7 @@ static class Program
 
             Console.ForegroundColor = ConsoleColor.Yellow;
             // Muestra el estado mensaje cuando no esta vació
-            Console.WriteLine("   " + mensajeEstado ?? "-");
+            Console.WriteLine("   " + (mensajeEstado ?? "-"));
             Console.ForegroundColor = ConsoleColor.Cyan;
             Console.WriteLine("------");
             Console.ResetColor();
@@ -140,6 +142,7 @@ static class Program
         // Bucle de menu para comprar semillas
         int seleccion = 0;
         decimal gasto = 0;
+        decimal costo = 0;
         while (true)
         {
             // Asignar la semilla seleccionada a una variable temporal
@@ -147,7 +150,7 @@ static class Program
                       Semillas[seleccion].GetPrecio(), Semillas[seleccion].GetIngresos());
             // Se obtiene la cantidad maxima a comprar
             //////// (Utilidad + UtilidadEsperada) / Precio \\\\\\\\\
-            decimal compraRecomendada = granja.GetDinero();
+            decimal compraRecomendada = granja.GetUtilidad();
                 // Agregar si las semilla a comprar se puede cosechar al siguiente mes
                 if (semillaSeleccion.GetMeses() == 1)
                     compraRecomendada++;
@@ -164,8 +167,12 @@ static class Program
                        Caja: ${granja.GetDinero()}
                        Costos: ${granja.GetCostosEsperados()}
                        Utilidad: ${granja.GetUtilidad()}
+                       Meses: {semillaSeleccion.GetMeses()}
                     """);
 
+            if (costo > 0)
+                Console.ForegroundColor = ConsoleColor.Yellow;
+            Console.WriteLine($"   Compra: ${costo}");
             if (granja.GetUtilidad() >= 0
                 && granja.GetDinero() >= semillaSeleccion.GetPrecio())
             {
@@ -206,7 +213,7 @@ static class Program
             if (seleccion == -1) break;
 
             // Si no se puede comprar
-            if (compraRecomendada <= 0)
+            if (granja.GetDinero() < semillaSeleccion.GetPrecio())
                 continue;
 
             Console.ForegroundColor = ConsoleColor.Cyan;
@@ -250,12 +257,13 @@ static class Program
                 }
 
                 granja.ComprarSemilla(semillaSeleccion);
-                gasto += semillaSeleccion.GetPrecio() * semillaSeleccion.GetCantidad();
-                gastosTotales += gasto;
+                costo = semillaSeleccion.GetPrecio() * semillaSeleccion.GetCantidad();
+                gasto += costo;
+                gastosTotales += costo;
                 break;
             }
         }
-        mensajeEstado = $"Dinero gastado: {gasto}";
+        mensajeEstado = $"Total Compra: {gasto}";
     }
 
     static void Sembrar ()
@@ -544,7 +552,7 @@ static class Program
         MostrarParcelas();
         Console.WriteLine();
 
-        if (!AskContinue())
+        if (!AskContinuar())
         {
             mensajeEstado = "Operacion Cancelada";
             return;
@@ -556,43 +564,185 @@ static class Program
         mensajeEstado = $"Ingresos: {granja.GetIngresosEsperados()}";
         ingresosTotales += granja.GetIngresosEsperados();
         granja.AvanzarMes();
+        dineroDelMes = granja.GetDinero();
     }
 
     static void InicializarGranja ()
     {
-        int empleados;
-        decimal sueldo;
-        int columnas;
-        int filas;
-
         while (true)
         {
-            Console.Clear();
-            Console.WriteLine("Inicalizar automaticamente");
-            if (!AskContinue())
-                break;
-            // else
-            // Randomizar todos los valores (segun restricciones)
-                Random random = new();
-                empleados = random.Next(1, 20);
-                sueldo = (decimal)Math.Round(random.Next(10, 1001) * random.NextDouble(), 2);
-                dineroInicial = (decimal)Math.Round(random.Next(101, 1001) * random.NextDouble(), 2) + (sueldo * empleados);
-                if (sueldo * empleados < 101
-                        && dineroInicial < 101)
-                    { dineroInicial = 101; }
-                filas = random.Next(1, 11);
-                columnas = random.Next(1, 11);
-                mesesTotal = random.Next(1,15);
+            int empleados;
+            decimal sueldo;
+            int columnas;
+            int filas;
 
-            // Mostrar los valores randomizados
-            Console.WriteLine($"""
-                    Empleados: {empleados}
-                    Sueldo: {sueldo}
-                    Dinero Inicial: {dineroInicial}
-                    Meses Totales: {mesesTotal}
-                    Filas: {filas}
-                    Columnas: {columnas}
-                    """);
+            while (true)
+            {
+                Console.Clear();
+                Console.WriteLine("Inicalizar automaticamente");
+                if (!AskContinuar())
+                    break;
+                // else
+                // Randomizar todos los valores (segun restricciones)
+                    Random random = new();
+                    empleados = random.Next(1, 20);
+                    sueldo = (decimal)Math.Round(random.Next(10, 1001) * random.NextDouble(), 2);
+                    dineroInicial = (decimal)Math.Round(random.Next(101, 1001) * random.NextDouble(), 2) + (sueldo * empleados);
+                    if (sueldo * empleados < 101
+                            && dineroInicial < 101)
+                        { dineroInicial = 101; }
+                    filas = random.Next(1, 11);
+                    columnas = random.Next(1, 11);
+                    mesesTotal = random.Next(1,15);
+                    dineroDelMes = dineroInicial;
+
+                // Mostrar los valores randomizados
+                Console.WriteLine($"""
+                        Empleados: {empleados}
+                        Sueldo: {sueldo}
+                        Dinero Inicial: {dineroInicial}
+                        Meses Totales: {mesesTotal}
+                        Filas: {filas}
+                        Columnas: {columnas}
+                        """);
+                granja = new Granja
+                (
+                    dineroInicial,
+                    empleados,
+                    sueldo,
+                    filas,
+                    columnas
+                );
+
+                if (AskContinuar())
+                    return;
+            }
+
+            while (true)
+            {
+                Console.Write("Ingrese el numero de empleados: ");
+
+                if (!int.TryParse(Console.ReadLine(), out empleados)
+                        || empleados < 1)
+                {
+                    WriteError("Debe haber almenos un empleado trabajando");
+                    continue;
+                }
+
+                if (empleados >= 10000)
+                {
+                    WriteError("Ingrese una cantidad menor a 10000");
+                    continue;
+                }
+
+                LimpiarLinea();
+                break;
+            }
+
+            while (true)
+            {
+                Console.Write("Ingrese el sueldo de los empleados: ");
+
+                if (!decimal.TryParse(Console.ReadLine(), out sueldo)
+                        || sueldo < 0)
+                {
+                    WriteError("Los empleados deben tener un sueldo");
+                    continue;
+                }
+
+                if (sueldo >= 10000)
+                {
+                    WriteError("Ingrese una cantidad menor a 10000");
+                    continue;
+                }
+
+                LimpiarLinea();
+                break;
+            }
+
+            while (true)
+            {
+                decimal dineroRequerido = (empleados * sueldo) + 1;
+                // Siempre se solicita tener almenos 100
+                if (dineroRequerido < 101) dineroRequerido = 101;
+                Console.Write($"Ingrese el dinero inical [${dineroRequerido}]: $");
+
+                if (!decimal.TryParse(Console.ReadLine(), out dineroInicial))
+                {
+                    WriteError("Ingrese un decimal");
+                    continue;
+                }
+
+                if (dineroInicial < dineroRequerido)
+                {
+                    WriteError("Utilidad minima no alcanzada");
+                    continue;
+                }
+
+                if (dineroInicial > 10000000)
+                {
+                    WriteError("Ingrese una cantidad menor o igual a $100000000");
+                    continue;
+                }
+
+                dineroDelMes = dineroInicial;
+                LimpiarLinea();
+                break;
+            }
+
+            while (true)
+            {
+                Console.Write("Ingrese las columnas de su granja: ");
+
+                if (!int.TryParse(Console.ReadLine(), out columnas)
+                        || columnas <= 0
+                        || columnas > 10)
+                {
+                    WriteError("Las cantidad de columnas debe estar entre 1 y 10");
+                    continue;
+                }
+
+                LimpiarLinea();
+                break;
+            }
+
+            while (true)
+            {
+                Console.Write("Ingrese las filas de su granja: ");
+
+                if (!int.TryParse(Console.ReadLine(), out filas)
+                        || filas <= 0
+                        || filas > 10)
+                {
+                    WriteError("Las cantidad de filas debe estar entre 1 y 10");
+                    continue;
+                }
+
+                LimpiarLinea();
+                break;
+            }
+
+            while (true)
+            {
+                Console.Write("Ingrese los meses a simular: ");
+
+                if (!int.TryParse(Console.ReadLine(), out mesesTotal)
+                        || mesesTotal < 0
+                        || mesesTotal > 100)
+                {
+                    WriteError("Solo se simularan entre 0 y 100 meses");
+                    continue;
+                }
+
+                LimpiarLinea();
+                break;
+            }
+
+            // Repite el proceso si el usuario cancela la operación
+            if (!AskContinuar())
+                continue;
+
+            // else
             granja = new Granja
             (
                 dineroInicial,
@@ -601,142 +751,7 @@ static class Program
                 filas,
                 columnas
             );
-
-            if (AskContinue())
-                return;
         }
-
-        while (true)
-        {
-            Console.Write("Ingrese el numero de empleados: ");
-
-            if (!int.TryParse(Console.ReadLine(), out empleados)
-                    || empleados < 1)
-            {
-                WriteError("Debe haber almenos un empleado trabajando");
-                continue;
-            }
-
-            if (empleados >= 10000)
-            {
-                WriteError("Ingrese una cantidad menor a 10000");
-                continue;
-            }
-
-            CleanLine();
-            break;
-        }
-
-        while (true)
-        {
-            Console.Write("Ingrese el sueldo de los empleados: ");
-
-            if (!decimal.TryParse(Console.ReadLine(), out sueldo)
-                    || sueldo < 0)
-            {
-                WriteError("Los empleados deben tener un sueldo");
-                continue;
-            }
-
-            if (sueldo >= 10000)
-            {
-                WriteError("Ingrese una cantidad menor a 10000");
-                continue;
-            }
-
-            CleanLine();
-            break;
-        }
-
-        while (true)
-        {
-            decimal dineroRequerido = empleados * sueldo;
-            // Siempre se solicita tener almenos 100
-            if (dineroRequerido < 101) dineroRequerido = 101;
-            Console.Write($"Ingrese el dinero inical [${dineroRequerido}]: $");
-
-            if (!decimal.TryParse(Console.ReadLine(), out dineroInicial))
-            {
-                WriteError("Ingrese un decimal");
-                continue;
-            }
-
-            if (dineroInicial < dineroRequerido)
-            {
-                WriteError("Utilidad minima no alcanzada");
-                continue;
-            }
-
-            if (dineroInicial > 10000000)
-            {
-                WriteError("Ingrese una cantidad menor o igual a $100000000");
-                continue;
-            }
-            CleanLine();
-            break;
-        }
-
-        while (true)
-        {
-            Console.Write("Ingrese las columnas de su granja: ");
-
-            if (!int.TryParse(Console.ReadLine(), out columnas)
-                    || columnas <= 0
-                    || columnas > 10)
-            {
-                WriteError("Las cantidad de columnas debe estar entre 1 y 10");
-                continue;
-            }
-
-            CleanLine();
-            break;
-        }
-
-        while (true)
-        {
-            Console.Write("Ingrese las filas de su granja: ");
-
-            if (!int.TryParse(Console.ReadLine(), out filas)
-                    || filas <= 0
-                    || filas > 10)
-            {
-                WriteError("Las cantidad de filas debe estar entre 1 y 10");
-                continue;
-            }
-
-            CleanLine();
-            break;
-        }
-
-        while (true)
-        {
-            Console.Write("Ingrese los meses a simular: ");
-
-            if (!int.TryParse(Console.ReadLine(), out mesesTotal)
-                    || mesesTotal < 0
-                    || mesesTotal > 100)
-            {
-                WriteError("Solo se simularan entre 0 y 100 meses");
-                continue;
-            }
-
-            CleanLine();
-            break;
-        }
-
-        // Repite el proceso si el usuario cancela la operación
-        if (!AskContinue())
-            InicializarGranja();
-
-        // else
-        granja = new Granja
-        (
-            dineroInicial,
-            empleados,
-            sueldo,
-            filas,
-            columnas
-        );
     }
     static void WriteError (string mensajeError)
     {
@@ -746,7 +761,7 @@ static class Program
         Console.ResetColor();
     }
 
-    static bool AskContinue ()
+    static bool AskContinuar ()
     {
         Console.ForegroundColor = ConsoleColor.Yellow;
         Console.Write(" :: Desea continuar? [Y/n]: ");
@@ -765,6 +780,6 @@ static class Program
         Console.Write("\eM\r\e[K");
         Console.ResetColor();
     }
-    static void CleanLine ()
+    static void LimpiarLinea ()
         { Console.Write("\e[K"); }
 }
