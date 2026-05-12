@@ -12,6 +12,10 @@ public class Parcela
         MesesSimulados = 0;
     }
 
+    public bool EstaLibre ()
+    {
+        return Semilla == null;
+    }
     public Semilla? GetSemilla ()
         { return Semilla; }
 
@@ -29,36 +33,33 @@ public class Parcela
         if (Semilla == null)
             return false;
 
-        return MesesSimulados >= Semilla.GetMeses();
+        // Se le resta uno para tomar en cuenta el mes en el que estara lista
+        return MesesSimulados >= Semilla.GetMeses() - 1;
     }
-    public bool Crecer ()
-    {
-        if (!EsCosechable())
-            return false;
-
-        // else
-        MesesSimulados++;
-        return true;
-    }
-
     public decimal GetIngresos ()
-    {
-        if (Semilla != null)
-            return Semilla.GetIngresos();
-        else
-            return 0M;
-    }
-    public decimal Cosechar ()
     {
         if (Semilla == null)
             return 0M;
+        else
+            return Semilla.GetIngresos();
+    }
+    public decimal CosecharYCrecer ()
+    {
+        if (Semilla == null)
+            { return 0M; }
 
-        if (MesesSimulados < Semilla.GetMeses())
+        // Se le resta uno para tomar en cuenta el mes en el que estara lista
+        else if (MesesSimulados < Semilla.GetMeses() - 1)
+        {
+            MesesSimulados++;
             return 0M;
+        }
 
-        decimal ingresos = Semilla.GetIngresos();
-        Semilla = null;
-        MesesSimulados = 0;
-        return ingresos;
+        else
+        {
+            decimal ingresos = Semilla.GetIngresos();
+            SetSemilla(null);
+            return ingresos;
+        }
     }
 }

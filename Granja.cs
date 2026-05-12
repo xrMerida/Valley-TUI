@@ -43,8 +43,32 @@ public class Granja
         Semillas = [];
     }
 
+    public decimal GetManoDeObraTotal ()
+        { return Empleados * Sueldo * MesesSimulados; }
     public Semilla[] GetSemillas ()
         { return Semillas; }
+    public int GetCantidadSemillas ()
+    {
+        int cantidad = 0;
+        foreach (var semilla in Semillas)
+            cantidad += semilla.GetCantidad();
+
+        return cantidad;
+    }
+    public int GetParcelasLibres ()
+    {
+        int parcelasLibres = 0;
+        for (int i = 0; i < Parcelas.GetLength(0); i++)
+        {
+            for (int j = 0; j < Parcelas.GetLength(1); j++)
+            {
+                if (Parcelas[i,j].EstaLibre())
+                    parcelasLibres++;
+            }
+        }
+
+        return parcelasLibres;
+    }
     public void ComprarSemilla (Semilla nuevaSemilla)
     {
         // Verificar si ya poseia semillas de la nueva semilla
@@ -81,8 +105,8 @@ public class Granja
             return false;
 
         // Falso cuando el indice no existe
-        if (indiceSemillas > Semillas.Length
-            || indiceSemillas < 0)
+        if (indiceSemillas >= Semillas.Length
+                || indiceSemillas < 0)
         { return false; }
 
         // else
@@ -127,44 +151,48 @@ public class Granja
 
     public void AvanzarMes ()
     {
-        foreach (var parcela in Parcelas)
+        Dinero = GetUtilidad();
+        for (int i = 0; i < Parcelas.GetLength(0); i++)
         {
-            if (parcela.GetSemilla() == null)
-                continue;
+            for (int j = 0; j < Parcelas.GetLength(1); j++)
+            {
+                if (Parcelas[i,j].EstaLibre())
+                    continue;
 
-            // Si no se puede crecer significa que esta lista para cosechar
-            if (!parcela.Crecer())
-                Dinero += parcela.Cosechar();
+                Dinero += Parcelas[i,j].CosecharYCrecer();
+            }
         }
 
         MesesSimulados++;
-        Dinero -= Empleados * Sueldo;
     }
-
-    public decimal GetCostosEsperados ()
-        { return Empleados * Sueldo; }
 
     public int GetMesesSimulados ()
         { return MesesSimulados; }
-    public decimal GetUtilidadEsperada ()
+    public decimal GetIngresosEsperados ()
     {
-        // Obtiene el dinero - costos esperados
-        decimal ingresosEsperados = GetUtilidad();
-
-        // Calcular cuantas parcelas se cosecharan al finarlizar el mes
-        foreach (var parcela in Parcelas)
+        decimal ingresosEsperados = 0;
+        for (int i = 0; i < Parcelas.GetLength(0); i++)
         {
-            if (parcela == null)
-                continue;
-            if (parcela.EsCosechable())
-                ingresosEsperados += parcela.GetIngresos();
+            for (int j = 0; j < Parcelas.GetLength(1); j++)
+            {
+                if (Parcelas[i,j].EstaLibre())
+                    continue;
+
+                if (Parcelas[i,j].EsCosechable())
+                    ingresosEsperados += Parcelas[i,j].GetIngresos();
+            }
         }
 
         return ingresosEsperados;
     }
+    public decimal GetSaldoEsperado ()
+        { return GetUtilidad() + GetIngresosEsperados(); }
 
     public decimal GetDinero ()
         { return Dinero; }
+
+    public decimal GetCostosEsperados ()
+        { return Empleados * Sueldo; }
 
     public decimal GetUtilidad ()
         { return Dinero - GetCostosEsperados(); }

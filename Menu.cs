@@ -7,7 +7,8 @@ public static class Menu
                                      int limiteX,
                                      ref int seleccionY,
                                      ref int seleccionX,
-                                     bool permitirDigitos)
+                                     bool permitirDigitos,
+                                     bool confirmarSalida)
     {
         ConsoleKeyInfo keyInfo = Console.ReadKey(true);
 
@@ -31,22 +32,32 @@ public static class Menu
             {
                 // Usuario solicita salir
                 case ConsoleKey.Q:
-                    Console.ForegroundColor = ConsoleColor.DarkYellow;
-                    Console.Write("\r\e[K   :  Salir ? [Y/n]  ");
-                    Console.ResetColor();
-
-                    // Confirmación doble
-                    keyInfo = Console.ReadKey(true);
-
-                    if (keyInfo.Key is ConsoleKey.Y or ConsoleKey.Enter)
+                    if (confirmarSalida)
                     {
-                        Console.Write("\e[2K\eM\r");
-                        seleccionY = -1;
+                        Console.ForegroundColor = ConsoleColor.DarkYellow;
+                        Console.Write("\r\e[K   :  Salir ? [Y/n]  ");
+                        Console.ResetColor();
+
+                        // Confirmación doble
+                        keyInfo = Console.ReadKey(true);
+
+                        if (keyInfo.Key is ConsoleKey.Y or ConsoleKey.Enter)
+                        {
+                            Console.Write("\e[2K\eM\r");
+                            seleccionY = -1;
+                            seleccionX = -1;
+                            return true;
+                        }
+                        // else
+                        return false;
+                    }
+
+                    else
+                    {
                         seleccionX = -1;
+                        seleccionY = -1;
                         return true;
                     }
-                    // else
-                    return false;
 
 
                 // Confirmar seleccion
@@ -96,9 +107,9 @@ public static class Menu
         Console.Write("\e[K\n\e[K     ←↑↓→ navegar  ↲ seleccionar  Q salir");
         Console.ResetColor();
 
-        return ManejarMenu(limiteY, limiteX, ref seleccionY, ref seleccionX, false);
+        return ManejarMenu(limiteY, limiteX, ref seleccionY, ref seleccionX, false, false);
     }
-    public static bool ManejarMenuY (int limite, ref int seleccion)
+    public static bool ManejarMenuY (int limite, ref int seleccion, bool confirmarSalida)
     {
         // Secuencia de escape '\e[1K' elimina la linea actual
         Console.ForegroundColor = ConsoleColor.DarkGray;
@@ -107,7 +118,7 @@ public static class Menu
 
         int _ = 0;
 
-        return ManejarMenu(limite, _, ref seleccion, ref _, true);
+        return ManejarMenu(limite, _, ref seleccion, ref _, true, confirmarSalida);
     }
 
     public static void WriteSeleccionY (string[] opciones, int seleccion)
