@@ -69,7 +69,21 @@ public class Granja
 
         return parcelasLibres;
     }
-    public void ComprarSemilla (Semilla nuevaSemilla)
+    public decimal GetInventarioEnProceso ()
+    {
+        decimal inventarioEnProceso = 0;
+        for (int i = 0; i < Parcelas.GetLength(0); i++)
+        {
+            for (int j = 0; j < Parcelas.GetLength(1); j++)
+            {
+                if (Parcelas[i, j].GetSemilla() != null)
+                    inventarioEnProceso += Parcelas[i, j].GetIngresos();
+            }
+        }
+
+        return inventarioEnProceso;
+    }
+    public void ComprarSemilla (Semilla nuevaSemilla, int cantidad)
     {
         // Verificar si ya poseia semillas de la nueva semilla
         if (Semillas.Length > 0)
@@ -78,7 +92,7 @@ public class Granja
             {
                 if (Semillas[i].GetNombre() == nuevaSemilla.GetNombre())
                 {
-                    Semillas[i].AgregarCantidad(nuevaSemilla.GetCantidad());
+                    Semillas[i].AgregarCantidad(cantidad);
                     Dinero -= nuevaSemilla.GetPrecio() * nuevaSemilla.GetCantidad();
                     return;
                 }
@@ -95,8 +109,9 @@ public class Granja
 
         // Se coloca la nueva semilla al final
         tempSemillas[^1] = nuevaSemilla;
+        tempSemillas[^1].SetCantidad(cantidad);
         Semillas = tempSemillas;
-        Dinero -= nuevaSemilla.GetPrecio() * nuevaSemilla.GetCantidad();
+        Dinero -= nuevaSemilla.GetPrecio() * cantidad;
     }
     public bool Sembrar (int indiceSemillas, int columna, int fila)
     {
@@ -185,7 +200,7 @@ public class Granja
 
         return ingresosEsperados;
     }
-    public decimal GetSaldoEsperado ()
+    public decimal GetCajaEsperada ()
         { return GetUtilidad() + GetIngresosEsperados(); }
 
     public decimal GetDinero ()
