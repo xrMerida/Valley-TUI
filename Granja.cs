@@ -4,12 +4,95 @@ namespace Granja;
 
 public class Granja
 {
-    private decimal Dinero;
-    private readonly int Empleados;
-    private readonly decimal Sueldo;
-    private readonly Parcela[,] Parcelas;
-    private Semilla[] Semillas;
-    private int MesesSimulados;
+    public decimal Caja { get; private set; }
+    public int Empleados { get; }
+    public decimal Sueldo { get; }
+    public Parcela[,] Parcelas { get; }
+    public Semilla[] InventarioSemillas { get; private set; }
+    public int MesesSimulados { get; private set; }
+    public decimal Costos
+    {
+        get
+        {
+            return Empleados * Sueldo;
+        }
+    }
+
+    public decimal ManoDeObra
+    {
+        get
+        {
+            return Empleados * Sueldo * MesesSimulados;
+        }
+    }
+
+    public int ParcelasLibres
+    {
+        get
+        {
+            int parcelasLibres = 0;
+            foreach (var parcela in Parcelas)
+            {
+                if (parcela.EstaLibre())
+                    parcelasLibres++;
+            }
+
+            return parcelasLibres;
+        }
+    }
+
+    public decimal InventarioEnProceso
+    {
+        get
+        {
+            decimal inventarioEnProceso = 0;
+            foreach (var parcela in Parcelas)
+            {
+                if (parcela.Semilla != null)
+                    inventarioEnProceso += parcela.Ingresos;
+            }
+
+            return inventarioEnProceso;
+        }
+    }
+
+    public decimal Utilidad
+    {
+        get
+        {
+            return Caja - Costos;
+        }
+    }
+
+    public decimal Ingresos
+    {
+        get
+        {
+            decimal ingresos = 0;
+            foreach (var parcela in Parcelas)
+            {
+                // Salta las parcelas libres
+                if (parcela.EstaLibre())
+                    continue;
+
+                // Saltar las parcelas que no se pueden cosechar aun
+                if (!parcela.EsCosechable())
+                    continue;
+
+                // else
+                ingresos += parcela.Ingresos;
+            }
+
+            return ingresos;
+        }
+    }
+    public decimal CajaEsperada
+    {
+        get
+        {
+            return Utilidad + Ingresos;
+        }
+    }
 
     public Granja (decimal dinero,
                    int empleados,
@@ -27,191 +110,135 @@ public class Granja
             throw new ArgumentException("Los empleados deben de recibir un sueldo", nameof(sueldo));
 
         // lanza IndexOutOfRangeException cuando los valores son menores a 0
-        Parcelas = new Parcela[columnas, filas];
+        Parcelas = new Parcela[filas, columnas];
 
-        // Inicializa todas las parcelas y las coloca como vacias (null)
+        // Inicializa todas las parcelas y las coloca con semillas vacias (null)
         for (int i = 0; i < columnas; i++)
         {
             for (int j = 0; j < filas; j++)
                 Parcelas[i,j] = new();
         }
 
-        Dinero = dinero;
+        Caja = dinero;
         Empleados = empleados;
         Sueldo = sueldo;
         MesesSimulados = 0;
-        Semillas = [];
+        InventarioSemillas = [];
     }
 
-    public decimal GetManoDeObraTotal ()
-        { return Empleados * Sueldo * MesesSimulados; }
-    public Semilla[] GetSemillas ()
-        { return Semillas; }
-    public int GetCantidadSemillas ()
-    {
-        int cantidad = 0;
-        foreach (var semilla in Semillas)
-            cantidad += semilla.GetCantidad();
+    public Parcela GetParcela (int fila, int columna)
+        { return Parcelas[fila, columna]; }
 
-        return cantidad;
-    }
-    public int GetParcelasLibres ()
+    public void ComprarSemilla (Semilla nuevaSemilla)
     {
-        int parcelasLibres = 0;
-        for (int i = 0; i < Parcelas.GetLength(0); i++)
-        {
-            for (int j = 0; j < Parcelas.GetLength(1); j++)
-            {
-                if (Parcelas[i,j].EstaLibre())
-                    parcelasLibres++;
-            }
-        }
+        if (nuevaSemilla == null)
+            throw new ArgumentException("No se puede comprar una semilla inexistente", nameof(nuevaSemilla));
 
-        return parcelasLibres;
-    }
-    public decimal GetInventarioEnProceso ()
-    {
-        decimal inventarioEnProceso = 0;
-        for (int i = 0; i < Parcelas.GetLength(0); i++)
-        {
-            for (int j = 0; j < Parcelas.GetLength(1); j++)
-            {
-                if (Parcelas[i, j].GetSemilla() != null)
-                    inventarioEnProceso += Parcelas[i, j].GetIngresos();
-            }
-        }
+        if (nuevaSemilla.Cantidad <= 0)
+            throw new ArgumentException("No se pueden comprar 0 semillas", nameof(nuevaSemilla.Cantidad));
 
-        return inventarioEnProceso;
-    }
-    public void ComprarSemilla (Semilla nuevaSemilla, int cantidad)
-    {
+        // else
         // Verificar si ya poseia semillas de la nueva semilla
-        if (Semillas.Length > 0)
+        if (InventarioSemillas.Length > 0)
         {
-            for (int i = 0; i < Semillas.Length; i++)
+            for (int i = 0; i < InventarioSemillas.Length; i++)
             {
-                if (Semillas[i].GetNombre() == nuevaSemilla.GetNombre())
-                {
-                    Semillas[i].AgregarCantidad(cantidad);
-                    Dinero -= nuevaSemilla.GetPrecio() * nuevaSemilla.GetCantidad();
-                    return;
-                }
+                // Continua si el Id no encaja
+                if (InventarioSemillas[i].Id != nuevaSemilla.Id)
+                    continue;
+
+                // else
+                InventarioSemillas[i].AgregarCantidad(nuevaSemilla.Cantidad);
+                // retorna inmediatamente
+                break;
             }
         }
 
-        // Si la semilla no existia en el inventario
+        // Si no existia en el inventario
+        else
+        {
+            //
+            // Variable temporal para guardar las semillas almacenadas
+            // Se le suma uno ya que necesita un nuevo espacio
+            Semilla[] nuevoInventario = new Semilla[InventarioSemillas.Length + 1];
+            // Se copia el arreglo de semillas al nuevo inventario
+            for (int i = 0; i < InventarioSemillas.Length; i++)
+                nuevoInventario[i] = InventarioSemillas[i];
 
-        // Variable temporal para guardar las semillas almacenadas
-        // Se le suma uno ya que necesita un nuevo espacio
-        Semilla[] tempSemillas = new Semilla[Semillas.Length + 1];
-        for (int i = 0; i < Semillas.Length; i++)
-            tempSemillas[i] = Semillas[i];
+            // Se coloca la nueva semilla al final
+            nuevoInventario[^1] = nuevaSemilla;
+            InventarioSemillas = nuevoInventario;
+        }
 
-        // Se coloca la nueva semilla al final
-        tempSemillas[^1] = nuevaSemilla;
-        tempSemillas[^1].SetCantidad(cantidad);
-        Semillas = tempSemillas;
-        Dinero -= nuevaSemilla.GetPrecio() * cantidad;
+        // Siempre se actualiza la cantidad de dinero
+        Caja -= nuevaSemilla.Precio * nuevaSemilla.Cantidad;
     }
-    public bool Sembrar (int indiceSemillas, int columna, int fila)
+    public void Sembrar (int indiceSemillas, int columna, int fila)
     {
-        // Solo permitir sembrar si esta vacio
-        if (Parcelas[columna, fila].GetSemilla() != null)
-            return false;
+        // Adicionalmente lanza IndexOutOfRangeException
+        if (Parcelas[columna, fila].Semilla != null)
+            throw new InvalidOperationException("No se puede plantar en una parcela ocupada");
 
-        // Falso cuando el indice no existe
-        if (indiceSemillas >= Semillas.Length
-                || indiceSemillas < 0)
-        { return false; }
+        // Adicionalmente lanza IndexOutOfRangeException
+        Semilla semilla = InventarioSemillas[indiceSemillas];
 
         // else
         // Colocar la semilla en la parcela especificada
-        Parcelas[columna, fila].SetSemilla(Semillas[indiceSemillas]);
+        Parcelas[columna, fila].Sembrar(semilla);
 
-        // Si solo queda una semilla (o menos) se elimina del inventario
-        if (Semillas[indiceSemillas].GetCantidad() <= 1)
+        // Si solo queda una semilla se elimina del inventario
+        if (InventarioSemillas[indiceSemillas].Cantidad <= 1)
             QuitarSemilla(indiceSemillas);
+        // De lo contrario se disminuye la cantidad
         else
-            Semillas[indiceSemillas].DisminuirCantidad();
-        return true;
+            InventarioSemillas[indiceSemillas].DisminuirCantidad();
     }
 
-    private bool QuitarSemilla (int indiceSemillas)
+    private void QuitarSemilla (int indiceSemillas)
     {
-        // Si el indice no existe
-        if (indiceSemillas > Semillas.Length
-            || indiceSemillas < 0)
-        { return false; }
+        // Lanza IndexOutOfRangeException
+        _ =InventarioSemillas[indiceSemillas];
 
+        // else
         // Se le reta uno porque se eliminara una semilla
-        Semilla[] tempSemillas = new Semilla[Semillas.Length - 1];
+        Semilla[] nuevoInventario = new Semilla[InventarioSemillas.Length - 1];
 
-        // j sera el contador de temp semillas
+        // j sera el contador del nuevo inventario
         int j = 0;
-        // i sera el contador de Semillas
-        for (int i = 0; i < Semillas.Length; i++)
+        // i sera el contador del inventario anterior
+        for (int i = 0; i < InventarioSemillas.Length; i++)
         {
-            // Saltar el indiceSemillas
+            // Saltar el indiceSemillas (no actualiza j)
             if (i == indiceSemillas)
                 continue;
 
             // else
-            tempSemillas[j] = Semillas[i];
+            nuevoInventario[j] = InventarioSemillas[i];
             j++;
         }
 
-        Semillas = tempSemillas;
-        return true;
+        InventarioSemillas = nuevoInventario;
     }
 
     public void AvanzarMes ()
     {
-        Dinero = GetUtilidad();
+        Caja -= Costos;
         for (int i = 0; i < Parcelas.GetLength(0); i++)
         {
             for (int j = 0; j < Parcelas.GetLength(1); j++)
             {
+                // Saltar las parcelas libres
                 if (Parcelas[i,j].EstaLibre())
                     continue;
 
-                Dinero += Parcelas[i,j].CosecharYCrecer();
+                // else
+                if (Parcelas[i,j].EsCosechable())
+                    Caja += Parcelas[i,j].Cosechar();
+                else
+                    Parcelas[i,j].Crecer();
             }
         }
 
         MesesSimulados++;
     }
-
-    public int GetMesesSimulados ()
-        { return MesesSimulados; }
-    public decimal GetIngresosEsperados ()
-    {
-        decimal ingresosEsperados = 0;
-        for (int i = 0; i < Parcelas.GetLength(0); i++)
-        {
-            for (int j = 0; j < Parcelas.GetLength(1); j++)
-            {
-                if (Parcelas[i,j].EstaLibre())
-                    continue;
-
-                if (Parcelas[i,j].EsCosechable())
-                    ingresosEsperados += Parcelas[i,j].GetIngresos();
-            }
-        }
-
-        return ingresosEsperados;
-    }
-    public decimal GetCajaEsperada ()
-        { return GetUtilidad() + GetIngresosEsperados(); }
-
-    public decimal GetDinero ()
-        { return Dinero; }
-
-    public decimal GetCostosEsperados ()
-        { return Empleados * Sueldo; }
-
-    public decimal GetUtilidad ()
-        { return Dinero - GetCostosEsperados(); }
-
-    public Parcela[,] GetParcelas ()
-        { return Parcelas; }
 }

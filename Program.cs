@@ -54,9 +54,9 @@ static class Program
             {
                 ////////// SALIDA //////////
                 mensajeEstado = "JUEGO FINALIZADO\n";
-                if (granja.GetCajaEsperada() <= 0)
+                if (granja.CajaEsperada <= 0)
                     mensajeEstado += "   -> NO TIENES MAS DINERO";
-                else if (granja.GetMesesSimulados() >= mesesTotal + 1)
+                else if (granja.MesesSimulados >= mesesTotal + 1)
                     mensajeEstado += "   -> NO TE QUEDAN MESES";
                 else if (seleccion == -1)
                     mensajeEstado += "   -> INTERRUPCION RECIBIDA";
@@ -70,30 +70,30 @@ static class Program
             Console.WriteLine($"""
                     ------
                        Caja del Mes: ${dineroDelMes}
-                       Caja: ${granja.GetDinero()}
-                       Costos: ${granja.GetCostosEsperados()}
+                       Caja: ${granja.Caja}
+                       Costos: ${granja.Costos}
                     """);
-            if (granja.GetMesesSimulados() < mesesTotal)
+            if (granja.MesesSimulados < mesesTotal)
             {
                 Console.ForegroundColor = ConsoleColor.DarkGreen;
-                Console.WriteLine($"   Mes: {granja.GetMesesSimulados()} / {mesesTotal}");
+                Console.WriteLine($"   Mes: {granja.MesesSimulados} / {mesesTotal}");
             }
             else
             {
                 Console.ForegroundColor = ConsoleColor.Red;
-                if (granja.GetMesesSimulados() >= mesesTotal || granja.GetDinero() <= 0)
+                if (granja.MesesSimulados >= mesesTotal || granja.Caja <= 0)
                     Console.ForegroundColor = ConsoleColor.DarkYellow;
-                Console.WriteLine($"   UTLIMO MES: {granja.GetMesesSimulados()} / {mesesTotal}");
+                Console.WriteLine($"   UTLIMO MES: {granja.MesesSimulados} / {mesesTotal}");
             }
-            if (granja.GetCajaEsperada() <= 0)
+            if (granja.CajaEsperada <= 0)
                 Console.ForegroundColor = ConsoleColor.Red;
-            else if (granja.GetCajaEsperada() <= dineroDelMes)
+            else if (granja.CajaEsperada <= dineroDelMes)
                 Console.ForegroundColor = ConsoleColor.DarkYellow;
-            else if (granja.GetCajaEsperada() > dineroDelMes)
+            else if (granja.CajaEsperada > dineroDelMes)
                 Console.ForegroundColor = ConsoleColor.DarkGreen;
-            if (granja.GetMesesSimulados() >= mesesTotal || granja.GetDinero() <= 0)
+            if (granja.MesesSimulados >= mesesTotal || granja.Caja <= 0)
                 Console.ForegroundColor = ConsoleColor.DarkYellow;
-            Console.WriteLine($"   Caja esperada: ${granja.GetCajaEsperada()}");
+            Console.WriteLine($"   Caja esperada: ${granja.CajaEsperada}");
             Console.ForegroundColor = ConsoleColor.DarkCyan;
             Console.WriteLine("------");
 
@@ -160,13 +160,13 @@ static class Program
 
                    Capital Inicial: ${dineroInicial}
                    Ingresos Totales: ${ingresosTotales}
-                   Mano de Obra: ${granja.GetManoDeObraTotal()}
-                   Inventario en Proceso: ${granja.GetInventarioEnProceso()}
+                   Mano de Obra: ${granja.ManoDeObra}
+                   Inventario en Proceso: ${granja.InventarioEnProceso}
                    Materia Prima: ${gastoMateriaPrima}
                    Utilidad Final: ${dineroInicial
                                      + ingresosTotales
-                                     + granja.GetInventarioEnProceso()
-                                     - granja.GetManoDeObraTotal()
+                                     + granja.InventarioEnProceso
+                                     - granja.ManoDeObra
                                      - gastoMateriaPrima}
 
                 {mensajeEstado}
@@ -174,14 +174,14 @@ static class Program
                 Autor: Xavier Mérida
                 """);
         Console.ResetColor();
-     }
+    }
     static void ComprarSemillas ()
     {
         // Se crea un arreglo de opciones para mostrar en pantalla
         // utiliza el nombre de la semillas declaradas anteriormente
         string[] opciones = new string[Semillas.Length];
         for (int i = 0; i < Semillas.Length; i++)
-            opciones[i] = Semillas[i].GetNombre();
+            opciones[i] = Semillas[i].Nombre;
 
         // Bucle de menu para comprar semillas
         int seleccion = 0;
@@ -196,41 +196,41 @@ static class Program
             Console.ForegroundColor = ConsoleColor.DarkCyan;
             Console.WriteLine($"""
                     ------
-                       Caja: ${granja.GetDinero()}
-                       Costos: ${granja.GetCostosEsperados()}
-                       Utilidad: ${granja.GetUtilidad()}
+                       Caja: ${granja.Caja}
+                       Costos: ${granja.Costos}
+                       Utilidad: ${granja.Utilidad}
                     """);
             Console.ForegroundColor = ConsoleColor.Yellow;
             Console.WriteLine($"   Total Gastado: ${gasto}");
-            if (granja.GetUtilidad() < 0
-                    || granja.GetDinero() < Semillas[seleccion].GetPrecio())
+            if (granja.Utilidad < 0
+                    || granja.Caja < Semillas[seleccion].Precio)
             {
                 Console.ForegroundColor = ConsoleColor.Red;
-                if (granja.GetUtilidad() < 0)
+                if (granja.Utilidad < 0)
                     Console.WriteLine("   Sin utilidad");
-                else if (granja.GetDinero() < Semillas[seleccion].GetPrecio())
+                else if (granja.Caja < Semillas[seleccion].Precio)
                     Console.WriteLine("   Inasquible");
             }
 
             else
             {
                 Console.ForegroundColor = ConsoleColor.Green;
-                Console.WriteLine($"   Compra Maxima: {Math.Floor(granja.GetDinero() / Semillas[seleccion].GetPrecio())}");
+                Console.WriteLine($"   Compra Maxima: {Math.Floor(granja.Caja / Semillas[seleccion].Precio)}");
             }
-            Console.WriteLine($"   Meses: {Semillas[seleccion].GetMeses()}");
-            Console.WriteLine($"   Precio: ${Semillas[seleccion].GetPrecio()}");
+            Console.WriteLine($"   Meses: {Semillas[seleccion].Meses}");
+            Console.WriteLine($"   Precio: ${Semillas[seleccion].Precio}");
 
             Console.ForegroundColor = ConsoleColor.DarkCyan;
             Console.WriteLine("------");
             ////////////// FIN ENCABEZADO /////////////////
 
             // Muestra el inventario de semillas
-            if (granja.GetSemillas().Length > 0)
+            if (granja.InventarioSemillas.Length > 0)
             {
                 Console.ForegroundColor = ConsoleColor.DarkYellow;
                 // Obtiene todas las semillas y su cantidad del inventario de la granja
-                foreach (var semilla in granja.GetSemillas())
-                    Console.WriteLine($"   {semilla.GetNombre()}: {semilla.GetCantidad()}");
+                foreach (var semilla in granja.InventarioSemillas)
+                    Console.WriteLine($"   {semilla.Nombre}: {semilla.Cantidad}");
 
                 Console.ForegroundColor = ConsoleColor.DarkCyan;
                 Console.WriteLine("-----");
@@ -246,8 +246,8 @@ static class Program
             if (seleccion == -1) break;
 
             // Si no se puede comprar
-            if (granja.GetUtilidad() < 0
-                    || granja.GetDinero() < Semillas[seleccion].GetPrecio())
+            if (granja.Utilidad < 0
+                    || granja.Caja < Semillas[seleccion].Precio)
                 { continue; }
 
             Console.ForegroundColor = ConsoleColor.Cyan;
@@ -284,14 +284,14 @@ static class Program
                 }
 
                 // Si la granaja no puede pagarlo mostrara un error
-                if (granja.GetDinero() <= Semillas[seleccion].GetPrecio() * cantidad)
+                if (granja.Caja <= Semillas[seleccion].Precio * cantidad)
                 {
                     MostrarError("No tienes suficiente dinero");
                     continue;
                 }
 
-                granja.ComprarSemilla(Semillas[seleccion], cantidad);
-                decimal costo = Semillas[seleccion].GetPrecio() * cantidad;
+                granja.ComprarSemilla(Semillas[seleccion]);
+                decimal costo = Semillas[seleccion].Precio * cantidad;
                 gasto += costo;
                 gastoMateriaPrima += costo;
                 break;
@@ -309,13 +309,13 @@ static class Program
             Console.Clear();
 
             // Lista de opciones de las semillas
-            string[] opciones = new string[granja.GetSemillas().Length];
+            string[] opciones = new string[granja.InventarioSemillas.Length];
 
             // Colocar el nombre de las semillas en el arreglo de opciones
             for (int i = 0; i < opciones.Length; i++)
             {
-                opciones[i] = granja.GetSemillas()[i].GetNombre();
-                opciones[i] += $": {granja.GetSemillas()[i].GetCantidad()}";
+                opciones[i] = granja.InventarioSemillas[i].Nombre;
+                opciones[i] += $": {granja.InventarioSemillas[i].Cantidad}";
             }
 
             if (opciones.Length == 0)
@@ -325,7 +325,7 @@ static class Program
                 return;
             }
 
-            if (granja.GetParcelasLibres() <= 0)
+            if (granja.ParcelasLibres <= 0)
             {
                 mensajeEstado = "No tienes parcelas donde plantar";
                 colorEstado = ConsoleColor.Red;
@@ -335,8 +335,8 @@ static class Program
             Console.ForegroundColor = ConsoleColor.DarkCyan;
             Console.WriteLine($"""
                     ------
-                       Ingresos: ${granja.GetSemillas()[seleccion].GetIngresos()}
-                       Parcelas Libres: {granja.GetParcelasLibres()}
+                       Ingresos: ${granja.InventarioSemillas[seleccion].Ingresos}
+                       Parcelas Libres: {granja.ParcelasLibres}
                     ------
                     """);
             Console.ResetColor();
@@ -352,11 +352,11 @@ static class Program
             int seleccionY = 0;
             bool? sembrado = null;
             int semillasSembradas = 0;
-            string semillaNombre = granja.GetSemillas()[seleccion].GetNombre();
+            string semillaNombre = granja.InventarioSemillas[seleccion].Nombre;
             while (true)
             {
                 /////////// ENCABERZADO //////////
-                Semilla? plantacion = granja.GetParcelas()[seleccionX,seleccionY].GetSemilla();
+                Semilla? plantacion = granja.Parcelas[seleccionX,seleccionY].Semilla;
                 Console.Clear();
                 Console.ForegroundColor = ConsoleColor.DarkCyan;
                 Console.WriteLine($"""
@@ -367,8 +367,8 @@ static class Program
                         """);
                 try
                 {
-                    if (semillaNombre == granja.GetSemillas()[seleccion].GetNombre())
-                        Console.WriteLine($"   Restantes: {granja.GetSemillas()[seleccion].GetCantidad()}");
+                    if (semillaNombre == granja.InventarioSemillas[seleccion].Nombre)
+                        Console.WriteLine($"   Restantes: {granja.InventarioSemillas[seleccion].Cantidad}");
                     else
                         throw new IndexOutOfRangeException();
                 }
@@ -419,7 +419,7 @@ static class Program
                     Console.ForegroundColor = ConsoleColor.Yellow;
                     // Muestra los Meses que le quedan a la parcela
                     Console.WriteLine($"""   
-                               Meses: {granja.GetParcelas()[seleccionX, seleccionY].GetMesesSimulados()} / {plantacion.GetMeses()}
+                               Meses: {granja.Parcelas[seleccionX, seleccionY].MesesSimulados} / {plantacion.Meses}
                                Ocupado
                             """);
                 }
@@ -432,8 +432,8 @@ static class Program
                 MostrarParcelasSeleccion(seleccionX, seleccionY);
 
                 // Se le pasan los argumentos para manejar un menu bidimensional
-                if (!Menu.ManejarMenuXY(granja.GetParcelas().GetLength(1),
-                                   granja.GetParcelas().GetLength(0),
+                if (!Menu.ManejarMenuXY(granja.Parcelas.GetLength(1),
+                                   granja.Parcelas.GetLength(0),
                                    ref seleccionY,
                                    ref seleccionX))
                     // Si el usuario NO presiona enter continuar
@@ -452,14 +452,14 @@ static class Program
     static void MostrarParcelasSeleccion (int seleccionX, int seleccionY)
     {
         // j seran las filas de la granaja
-        for (int j = 0; j < granja.GetParcelas().GetLength(1); j++)
+        for (int j = 0; j < granja.Parcelas.GetLength(1); j++)
         {
             // i seran las columnas de la granja
-            for (int i = 0; i < granja.GetParcelas().GetLength(0); i++)
+            for (int i = 0; i < granja.Parcelas.GetLength(0); i++)
             {
                 Console.ResetColor();
 
-                Semilla? plantacion = granja.GetParcelas()[i,j].GetSemilla();
+                Semilla? plantacion = granja.Parcelas[i,j].Semilla;
                 // Cuando la parcela esta seleccionada mostrarla en verde
                 if (seleccionX == i && seleccionY == j)
                 {
@@ -470,7 +470,7 @@ static class Program
                     // Imprimir nombre de la plantacion si esta ocupada
                     // [..2] obtiene los primeros 2 caracteres del nombre de la semilla
                     else
-                        Console.Write($"[  {plantacion.GetNombre()[..2].ToUpper()}  ]");
+                        Console.Write($"[  {plantacion.Nombre[..2].ToUpper()}  ]");
                 }
 
                 else
@@ -482,7 +482,7 @@ static class Program
                     // Imprimir nombre de la plantacion si esta ocupada
                     // [..2] obtiene los primeros 2 caracteres del nombre de la semilla
                     else
-                        Console.Write($" [ {plantacion.GetNombre()[..2].ToUpper()} ] ");
+                        Console.Write($" [ {plantacion.Nombre[..2].ToUpper()} ] ");
                 }
 
             }
@@ -498,7 +498,7 @@ static class Program
         do
         {
             Console.Clear();
-            Parcela parcela = granja.GetParcelas()[seleccionX,seleccionY];
+            Parcela parcela = granja.Parcelas[seleccionX,seleccionY];
 
             Console.ForegroundColor = ConsoleColor.Cyan;
             Console.WriteLine($"""
@@ -506,7 +506,7 @@ static class Program
                        Posicion X: {seleccionX}
                        Posicion Y: {seleccionY}
                     """);
-            if (parcela.GetSemilla() == null)
+            if (parcela.Semilla == null)
             {
                 Console.ForegroundColor = ConsoleColor.Green;
                 Console.WriteLine("""
@@ -515,13 +515,13 @@ static class Program
                            Meses: 0 / 0
                         """);
             }
-            else if (parcela.GetSemilla() != null)
+            else if (parcela.Semilla != null)
             {
                 Console.ForegroundColor = ConsoleColor.Yellow;
                 Console.WriteLine($"""   
-                           Plantacion: {parcela.GetSemilla()!.GetNombre()}
-                           Ingresos: ${parcela.GetSemilla()!.GetIngresos()}
-                           Meses: {parcela.GetMesesSimulados()} / {parcela.GetSemilla()!.GetMeses()}
+                           Plantacion: {parcela.Semilla.Nombre}
+                           Ingresos: ${parcela.Semilla.Ingresos}
+                           Meses: {parcela.MesesSimulados} / {parcela.Semilla.Meses}
                         """);
             }
             Console.ForegroundColor = ConsoleColor.Cyan;
@@ -532,8 +532,8 @@ static class Program
             MostrarParcelasSeleccion(seleccionX, seleccionY);
 
             // Se le pasan los argumentos para manejar un menu bidimensional
-            Menu.ManejarMenuXY(granja.GetParcelas().GetLength(1), // El limite en Y
-                               granja.GetParcelas().GetLength(0), // El limite en X
+            Menu.ManejarMenuXY(granja.Parcelas.GetLength(1), // El limite en Y
+                               granja.Parcelas.GetLength(0), // El limite en X
                                ref seleccionY,        // Seleccion del usuario en Y
                                ref seleccionX);       // Seleccion del usuario en X
         } while (seleccionY is not -1); // Si usuario sale del programa devuelve -1
@@ -542,32 +542,32 @@ static class Program
     static void MostrarParcelas ()
     {
         // j seran las filas 
-        for (int j = 0; j < granja.GetParcelas().GetLength(1); j++)
+        for (int j = 0; j < granja.Parcelas.GetLength(1); j++)
         {
             // i seran las columnas de la granja
-            for (int i = 0; i < granja.GetParcelas().GetLength(0); i++)
+            for (int i = 0; i < granja.Parcelas.GetLength(0); i++)
             {
                 Console.ResetColor();
 
                 // Variable de la parcela actual temporal
-                Parcela parcela = granja.GetParcelas()[i,j];
+                Parcela parcela = granja.Parcelas[i,j];
                 // Si es cosechable sera verde
                 if (parcela.EsCosechable())
                     Console.ForegroundColor = ConsoleColor.Green;
                 // Si no es cosechable y tiene semilla sera amarillo
-                else if (parcela.GetSemilla() != null)
+                else if (parcela.Semilla != null)
                     Console.ForegroundColor = ConsoleColor.Yellow;
                 // Si no tiene semilla sera blanco
 
                 // Parcelas sin semilla
-                if (parcela.GetSemilla() == null)
+                if (parcela.Semilla == null)
                     Console.Write(" [ -- ] ");
                 // Parcelas cosechables seran resaltadas
                 else if (parcela.EsCosechable())
-                    Console.Write($" [ {parcela.GetSemilla()!.GetNombre()[..2].ToUpper()} ] ");
+                    Console.Write($" [ {parcela.Semilla.Nombre[..2].ToUpper()} ] ");
                 // Parcelas no cosechables
                 else
-                    Console.Write($" [ {parcela.GetSemilla()!.GetNombre()[..2].ToUpper()} ] ");
+                    Console.Write($" [ {parcela.Semilla.Nombre[..2].ToUpper()} ] ");
             }
             // Salto de linea por cada fila impresa
             Console.WriteLine();
@@ -577,7 +577,7 @@ static class Program
     {
         ///////////// ENCABEZADO //////////////
         int parcelasCosechables = 0;
-        foreach (var parcela in granja.GetParcelas())
+        foreach (var parcela in granja.Parcelas)
         {
             if (parcela.EsCosechable())
                 parcelasCosechables++;
@@ -586,15 +586,15 @@ static class Program
         Console.WriteLine($"""
                 ------
                    Parcelas a Cosechar: {parcelasCosechables}
-                   Ingresos Esperados: {granja.GetIngresosEsperados()}
+                   Ingresos Esperados: {granja.Ingresos}
                 """);
-        if (granja.GetCajaEsperada() <= 0)
+        if (granja.CajaEsperada <= 0)
             Console.ForegroundColor = ConsoleColor.Red;
-        else if (granja.GetCajaEsperada() <= dineroDelMes)
+        else if (granja.CajaEsperada <= dineroDelMes)
             Console.ForegroundColor = ConsoleColor.DarkYellow;
-        else if (granja.GetCajaEsperada() > dineroDelMes)
+        else if (granja.CajaEsperada > dineroDelMes)
             Console.ForegroundColor = ConsoleColor.DarkGreen;
-        Console.WriteLine($"   Caja esperada: ${granja.GetCajaEsperada()}");
+        Console.WriteLine($"   Caja esperada: ${granja.CajaEsperada}");
         Console.ForegroundColor = ConsoleColor.DarkCyan;
         Console.WriteLine("------");
         Console.ResetColor();
@@ -611,12 +611,12 @@ static class Program
         }
 
         // else
-        juegoFinalizado = granja.GetCajaEsperada() <= 0 || granja.GetMesesSimulados() >= mesesTotal + 1;
+        juegoFinalizado = granja.CajaEsperada <= 0 || granja.MesesSimulados >= mesesTotal + 1;
 
         if (!juegoFinalizado)
         {
-            mensajeEstado = $"Ingresos: {granja.GetIngresosEsperados()}";
-            ingresosTotales += granja.GetIngresosEsperados();
+            mensajeEstado = $"Ingresos: {granja.Ingresos}";
+            ingresosTotales += granja.Ingresos;
             granja.AvanzarMes();
         }
     }
@@ -665,10 +665,10 @@ static class Program
                         ------ Costos ------
                             Empleados: {empleados}
                             Sueldo: ${sueldo}
-                            Total: ${granja.GetCostosEsperados()}
+                            Total: ${granja.Costos}
                         ------ Caja -------
                             Inicial: ${dineroInicial}
-                            Segundo Mes: ${granja.GetCajaEsperada()}
+                            Segundo Mes: ${granja.CajaEsperada}
                         ------ Extra -------
                             Meses Totales: {mesesTotal}
                             Filas: {filas}

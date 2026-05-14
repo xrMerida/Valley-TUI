@@ -4,11 +4,13 @@ namespace Granja;
 
 public class Semilla
 {
-    private readonly string Nombre;
-    private readonly int Meses;
-    private readonly decimal Precio;
-    private readonly decimal Ingresos;
-    private int Cantidad;
+    public string Nombre { get; }
+    public int Meses { get; }
+    public decimal Precio { get; }
+    public decimal Ingresos { get; }
+    public int Cantidad { get; private set; }
+    public string Id { get; }
+    private static int s_SemillaId = 12345;
 
     public Semilla (string nombre,
                     int meses,
@@ -32,55 +34,27 @@ public class Semilla
         Precio = precio;
         Ingresos = ingresos;
         Cantidad = 0;
+        Id = s_SemillaId.ToString();
+        s_SemillaId++;
     }
 
-    public string GetNombre ()
-        { return Nombre; }
-
-    public int GetMeses ()
-        { return Meses; }
-
-    public decimal GetPrecio ()
-        { return Precio; }
-
-    public decimal GetIngresos ()
-        { return Ingresos; }
-
-    public int GetCantidad ()
-        { return Cantidad; }
-
-    public bool AgregarCantidad (int cantidad)
+    public void AgregarCantidad (int cantidad)
     {
         if (cantidad <= 0)
-            { return false; }
-
-        else
-        {
-            Cantidad += cantidad;
-            return true;
-        }
-    }
-    public bool DisminuirCantidad ()
-    {
-        if (Cantidad <= 1)
-        {
-            Cantidad = 0;
-            return false;
-        }
-
-        else
-        {
-            Cantidad--;
-            return true;
-        }
-    }
-    public bool SetCantidad (int cantidad)
-    {
-        if (cantidad <= 0)
-            return false;
+            throw new ArgumentOutOfRangeException(nameof(cantidad), "Cantidad a agregar debe ser mayor a 0");
 
         // else
-        Cantidad = cantidad;
-        return true;
+        Cantidad += cantidad;
     }
+    public void DisminuirCantidad ()
+    {
+        if (Cantidad <= 0)
+            throw new InvalidOperationException("La cantidad de semillas es 0");
+
+        // else
+        Cantidad--;
+    }
+
+    public void EliminarCantidad ()
+        { Cantidad = 0; }
 }

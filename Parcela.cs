@@ -1,11 +1,23 @@
-﻿namespace Granja;
+﻿using System;
+
+namespace Granja;
 
 public class Parcela
 {
-    private Semilla? Semilla;
-    private int MesesSimulados;
+    public Semilla? Semilla { get; private set; }
+    public int MesesSimulados { get; private set; }
+    public decimal Ingresos
+    {
+        get
+        {
+            if (Semilla == null)
+                return 0M;
 
-    // Parcela vacia
+            // else
+            return Semilla.Ingresos;
+        }
+    }
+
     public Parcela ()
     {
         Semilla = null;
@@ -13,20 +25,13 @@ public class Parcela
     }
 
     public bool EstaLibre ()
+        { return Semilla == null; }
+
+    public void Sembrar (Semilla? semilla)
     {
-        return Semilla == null;
+        MesesSimulados = 0;
+        Semilla = semilla;
     }
-    public Semilla? GetSemilla ()
-        { return Semilla; }
-
-    public void SetSemilla (Semilla? semilla)
-        {
-            MesesSimulados = 0;
-            Semilla = semilla;
-        }
-
-    public int GetMesesSimulados ()
-        { return MesesSimulados; }
 
     public bool EsCosechable ()
     {
@@ -34,32 +39,32 @@ public class Parcela
             return false;
 
         // Se le resta uno para tomar en cuenta el mes en el que estara lista
-        return MesesSimulados >= Semilla.GetMeses() - 1;
+        return MesesSimulados >= Semilla.Meses - 1;
     }
-    public decimal GetIngresos ()
+    public void Crecer ()
     {
         if (Semilla == null)
-            return 0M;
-        else
-            return Semilla.GetIngresos();
+            throw new InvalidOperationException("No se puede crecer una plantacion inexistente");
+
+        if (EsCosechable())
+            throw new InvalidOperationException("No se puede crecer una plantacion lista para cosechar");
+
+        // else
+        MesesSimulados++;
     }
-    public decimal CosecharYCrecer ()
+
+    public decimal Cosechar ()
     {
         if (Semilla == null)
-            { return 0M; }
+            throw new InvalidOperationException("No se puede cosechar una plantacion inexistente");
 
-        // Se le resta uno para tomar en cuenta el mes en el que estara lista
-        else if (MesesSimulados < Semilla.GetMeses() - 1)
-        {
-            MesesSimulados++;
-            return 0M;
-        }
+        if (!EsCosechable())
+            throw new InvalidOperationException("No se puede cosechar una plantacion que no esta lista");
 
-        else
-        {
-            decimal ingresos = Semilla.GetIngresos();
-            SetSemilla(null);
-            return ingresos;
-        }
+        // else
+        decimal ingresos = Semilla.Ingresos;
+        // Se elimina la semilla (parcela vacia)
+        Sembrar(null);
+        return ingresos;
     }
 }
