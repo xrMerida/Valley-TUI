@@ -1,8 +1,26 @@
 using System;
 
 namespace Granja;
+
+/// <summary>
+/// Proporciona utilidades estáticas para la navegación por menú
+/// mediante teclado direccional y selección por consola.
+/// </summary>
 public static class Menu
 {
+    /// <summary>
+    /// Procesa una tecla presionada y actualiza la selección del menú bidimensional.
+    /// </summary>
+    /// <param name="limiteY">Cantidad máxima de opciones verticales.</param>
+    /// <param name="limiteX">Cantidad máxima de opciones horizontales.</param>
+    /// <param name="seleccionY">Índice de selección vertical (por referencia).</param>
+    /// <param name="seleccionX">Índice de selección horizontal (por referencia).</param>
+    /// <param name="permitirDigitos">Si <c>true</c>, permite seleccionar con teclas numéricas.</param>
+    /// <param name="confirmarSalida">Si <c>true</c>, solicita confirmación al presionar Q.</param>
+    /// <returns>
+    /// <c>true</c> si el usuario confirmó (Enter) o solicitó salir;
+    /// <c>false</c> si solo navegó.
+    /// </returns>
     private static bool ManejarMenu (int limiteY,
                                      int limiteX,
                                      ref int seleccionY,
@@ -59,7 +77,6 @@ public static class Menu
                         return true;
                     }
 
-
                 // Confirmar seleccion
                 case ConsoleKey.Enter:
                     Console.Write("\e[2K\eM\r");
@@ -100,6 +117,16 @@ public static class Menu
         }
     }
 
+    /// <summary>
+    /// Maneja un menú bidimensional (XY) mostrando instrucciones de navegación.
+    /// </summary>
+    /// <param name="limiteY">Límite vertical de opciones.</param>
+    /// <param name="limiteX">Límite horizontal de opciones.</param>
+    /// <param name="seleccionY">Índice de selección vertical (por referencia).</param>
+    /// <param name="seleccionX">Índice de selección horizontal (por referencia).</param>
+    /// <returns>
+    /// <c>true</c> si el usuario confirmó selección; <c>false</c> si solo navegó.
+    /// </returns>
     public static bool ManejarMenuXY (int limiteY, int limiteX, ref int seleccionY, ref int seleccionX)
     {
         // Secuencia de escape '\e[1K' elimina la linea actual
@@ -109,6 +136,18 @@ public static class Menu
 
         return ManejarMenu(limiteY, limiteX, ref seleccionY, ref seleccionX, false, false);
     }
+
+    /// <summary>
+    /// Maneja un menú unidimensional (vertical) mostrando instrucciones de navegación.
+    /// </summary>
+    /// <param name="limite">Cantidad de opciones en el menú.</param>
+    /// <param name="seleccion">Índice de selección actual (por referencia).</param>
+    /// <param name="confirmarSalida">
+    /// Si <c>true</c>, solicita confirmación al presionar Q.
+    /// </param>
+    /// <returns>
+    /// <c>true</c> si el usuario confirmó selección; <c>false</c> si solo navegó.
+    /// </returns>
     public static bool ManejarMenuY (int limite, ref int seleccion, bool confirmarSalida)
     {
         // Secuencia de escape '\e[1K' elimina la linea actual
@@ -121,6 +160,11 @@ public static class Menu
         return ManejarMenu(limite, _, ref seleccion, ref _, true, confirmarSalida);
     }
 
+    /// <summary>
+    /// Imprime en consola una lista de opciones resaltando la opción seleccionada.
+    /// </summary>
+    /// <param name="opciones">Arreglo de textos de las opciones.</param>
+    /// <param name="seleccion">Índice de la opción actualmente seleccionada.</param>
     public static void WriteSeleccionY (string[] opciones, int seleccion)
     {
         for (int i = 0; i < opciones.Length; i++)
@@ -128,7 +172,7 @@ public static class Menu
             // Elimina todo el contenido de la linea actual
             Console.Write("\e[K");
 
-            // Muestra un ' > ' en verde junt con la opcion seleccionada
+            // Muestra un ' > ' en verde junto con la opcion seleccionada
             if (seleccion == i)
             {
                 Console.ForegroundColor = ConsoleColor.Green;
