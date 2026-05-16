@@ -2,24 +2,149 @@ using System;
 namespace Granja;
 
 /// <summary>
-/// Punto de entrada principal del programa de gestión de granja.
-/// Configura la granja con los datos ingresados por el usuario.
+/// Punto de entrada principal del programa de gestion de granja.
+/// Configura la granja, ejecuta el bucle principal del menu
+/// y muestra el resumen final al terminar la simulacion.
 /// </summary>
 static class Program
 {
-    static Granja granja = null!;
+    ////////// VARIABLES //////////
+    static Granja Granja = null!;
     static decimal capitalInicial;
     static int mesesTotal;
+    static decimal ingresosTotales;
+    static decimal dineroDelMes;
+    static decimal gastoMateriaPrima;
+    static bool juegoFinalizado;
+    static string? mensajeEstado;
+
+    const string LIMPIAR_LINEA = "\e[2K\r";
+    const ConsoleColor ColorExito = ConsoleColor.Green;
+    const ConsoleColor ColorError = ConsoleColor.Red;
+    const ConsoleColor ColorAdvertencia = ConsoleColor.Yellow;
 
     static void Main()
     {
+        ////////// MENU INICIAL //////////
         InicializarGranja();
+
+        ////////// MENU PRINCIPAL //////////
+        Menu menu = new()
+        {
+            Opciones =
+            [
+                "Comprar Semillas",
+                "Sembrar",
+                "Consultar Parcelas",
+                "Avanzar de Mes"
+            ]
+        };
+        dineroDelMes = capitalInicial;
+
+        // Bucle principal del juego
+        while (true)
+        {
+            Console.Clear();
+
+            // Detecta si el usuario presiono Q
+            juegoFinalizado = juegoFinalizado || menu.Seleccion == -1;
+
+            if (juegoFinalizado)
+            {
+                mensajeEstado = "JUEGO FINALIZADO\n";
+                if (Granja.CajaEsperada <= 0)
+                    mensajeEstado += "   -> NO TIENES MAS DINERO";
+                // Se le suma porque se toma en cuenta el siguiente mes
+                else if (Granja.MesesSimulados >= mesesTotal + 1)
+                    mensajeEstado += "   -> NO TE QUEDAN MESES";
+                else if (menu.Seleccion == -1)
+                    mensajeEstado += "   -> INTERRUPCION RECIBIDA";
+                else
+                    mensajeEstado += "   -> ERROR";
+            }
+
+            ///////////// ENCABEZADO ////////////////
+            menu.LimpiarEncabezado();
+            menu.AgregarEncabezado($"Caja del Mes: ${dineroDelMes}");
+            menu.AgregarEncabezado($"Caja: ${Granja.Caja}");
+            menu.AgregarEncabezado($"Costos: ${Granja.Costos}");
+
+            if (Granja.MesesSimulados < mesesTotal)
+                menu.AgregarEncabezado($"Mes: {Granja.MesesSimulados} / {mesesTotal}", ColorExito);
+            else
+                menu.AgregarEncabezado($"ULTIMO MES: {Granja.MesesSimulados} / {mesesTotal}", ColorAdvertencia);
+
+            // Color segun el saldo esperado (verde si es positivo, amarillo si baja, rojo si quiebra)
+            ConsoleColor colorCajaEsperada;
+            if (Granja.CajaEsperada <= 0)
+                colorCajaEsperada = ColorError;
+            else if (Granja.CajaEsperada <= dineroDelMes)
+                colorCajaEsperada = ColorAdvertencia;
+            else
+                colorCajaEsperada = ColorExito;
+
+            menu.AgregarEncabezado($"Caja esperada: ${Granja.CajaEsperada}", colorCajaEsperada);
+
+            if (juegoFinalizado)
+                menu.AgregarEncabezado(mensajeEstado ?? "-", ColorError);
+            else
+                menu.AgregarEncabezado(mensajeEstado ?? "-");
+            ///////////// FIN ENCABEZADO ////////////////
+
+            // Cuando el juego termina se muestra el estado final y se sale
+            if (juegoFinalizado)
+            {
+                menu.MostrarEncabezado();
+                Console.ForegroundColor = ConsoleColor.Cyan;
+                Console.Write("\n :: Presione una tecla para continuar");
+                Console.ReadKey(true);
+                Console.Write("\eM\r\e[2K\r");
+                Console.ResetColor();
+                break;
+            }
+
+            // Bucle que muestra el menu y espera una accion del usuario
+            do
+            {
+                Console.Clear();
+                menu.MostrarEncabezado();
+                menu.MostrarOpciones();
+            } while (!menu.Leer());
+
+            // Limpia el mensaje de estado para la siguiente iteracion
+            mensajeEstado = null;
+
+            // Sale del bucle principal si el usuario lo solicito
+            if (menu.Seleccion == -1)
+                continue;
+
+            // Ejecuta la accion seleccionada
+            Console.Clear();
+            switch (menu.Opciones[menu.Seleccion])
+            {
+                case "Comprar Semillas":
+                    ComprarSemillas();
+                    break;
+                case "Sembrar":
+                    Sembrar();
+                    break;
+                case "Consultar Parcelas":
+                    ConsultarParcelas();
+                    break;
+                case "Avanzar de Mes":
+                    AvanzarMes();
+                    break;
+            }
+        }
+
+        ////////////// SALIDA //////////////
+        MostrarResumenFinal();
     }
 
     /// <summary>
-    /// Solicita al usuario los parámetros iniciales de la granja
+    /// Solicita al usuario los parametros iniciales de la granja
     /// (empleados, sueldo, capital, meses, filas, columnas)
-    /// e inicializa el objeto <see cref="Granja"/>.
+    /// e inicializa el objeto <see cref="global::Granja.Granja"/>.
     /// </summary>
     static void InicializarGranja()
     {
@@ -30,7 +155,7 @@ static class Program
 
         while (true)
         {
-            ReiniciarLinea();
+            Console.Write(LIMPIAR_LINEA);
             Console.Write("Ingrese la cantidad de empleados: ");
             Console.ForegroundColor = ConsoleColor.Cyan;
             if (!int.TryParse(Console.ReadLine(), out empleados))
@@ -46,10 +171,11 @@ static class Program
 
             break;
         }
+        Console.ResetColor();
 
         while (true)
         {
-            ReiniciarLinea();
+            Console.Write(LIMPIAR_LINEA);
             Console.Write("Ingrese el sueldo de los empleados: $");
             Console.ForegroundColor = ConsoleColor.Cyan;
             if (!decimal.TryParse(Console.ReadLine(), out sueldo))
@@ -65,10 +191,11 @@ static class Program
 
             break;
         }
+        Console.ResetColor();
 
         while (true)
         {
-            ReiniciarLinea();
+            Console.Write(LIMPIAR_LINEA);
             Console.Write($"Ingrese su capital inicial [${sueldo * empleados}]: $");
             Console.ForegroundColor = ConsoleColor.Cyan;
             if (!decimal.TryParse(Console.ReadLine(), out capitalInicial))
@@ -84,10 +211,11 @@ static class Program
 
             break;
         }
+        Console.ResetColor();
 
         while (true)
         {
-            ReiniciarLinea();
+            Console.Write(LIMPIAR_LINEA);
             Console.Write("Ingrese los meses a simular: ");
             Console.ForegroundColor = ConsoleColor.Cyan;
             if (!int.TryParse(Console.ReadLine(), out mesesTotal))
@@ -103,10 +231,11 @@ static class Program
 
             break;
         }
+        Console.ResetColor();
 
         while (true)
         {
-            ReiniciarLinea();
+            Console.Write(LIMPIAR_LINEA);
             Console.Write("Ingrese las filas: ");
             Console.ForegroundColor = ConsoleColor.Cyan;
             if (!int.TryParse(Console.ReadLine(), out filas))
@@ -122,10 +251,11 @@ static class Program
 
             break;
         }
+        Console.ResetColor();
 
         while (true)
         {
-            ReiniciarLinea();
+            Console.Write(LIMPIAR_LINEA);
             Console.Write("Ingrese las columnas: ");
             Console.ForegroundColor = ConsoleColor.Cyan;
             if (!int.TryParse(Console.ReadLine(), out columnas))
@@ -141,29 +271,75 @@ static class Program
 
             break;
         }
+        Console.ResetColor();
 
-        ReiniciarLinea();
-        granja = new(empleados, sueldo, capitalInicial, filas, columnas);
+        Granja = new(empleados, sueldo, capitalInicial, filas, columnas);
+    }
+
+    static void ComprarSemillas()
+    {
+        // Pendiente: implementar compra de semillas
+    }
+
+    static void Sembrar()
+    {
+        // Pendiente: implementar siembra
+    }
+
+    static void ConsultarParcelas()
+    {
+        // Pendiente: implementar consulta
+    }
+
+    static void AvanzarMes()
+    {
+        // Pendiente: implementar avance de mes
     }
 
     /// <summary>
-    /// Muestra un mensaje de error en color rojo sin cambiar la línea actual.
+    /// Muestra el resumen financiero al finalizar la simulacion.
+    /// </summary>
+    static void MostrarResumenFinal()
+    {
+        Console.Clear();
+        Console.ResetColor();
+        Console.WriteLine("""
+                ██╗   ██╗ █████╗ ██╗     ██╗     ███████╗██╗   ██╗    ████████╗██╗   ██╗██╗
+                ██║   ██║██╔══██╗██║     ██║     ██╔════╝╚██╗ ██╔╝    ╚══██╔══╝██║   ██║██║
+                ██║   ██║███████║██║     ██║     █████╗   ╚████╔╝        ██║   ██║   ██║██║
+                ╚██╗ ██╔╝██╔══██║██║     ██║     ██╔══╝    ╚██╔╝         ██║   ██║   ██║██║
+                 ╚████╔╝ ██║  ██║███████╗███████╗███████╗   ██║          ██║   ╚██████╔╝██║
+                  ╚═══╝  ╚═╝  ╚═╝╚══════╝╚══════╝╚══════╝   ╚═╝          ╚═╝    ╚═════╝ ╚═╝
+                """);
+        Console.ForegroundColor = ConsoleColor.Cyan;
+        Console.WriteLine($"""
+
+                   Capital Inicial: ${capitalInicial}
+                   Ingresos Totales: ${ingresosTotales}
+                   Mano de Obra: ${Granja.ManoDeObra}
+                   Inventario en Proceso: ${Granja.InventarioEnProceso}
+                   Materia Prima: ${gastoMateriaPrima}
+                   Utilidad Final: ${capitalInicial
+                                     + ingresosTotales
+                                     + Granja.InventarioEnProceso
+                                     - Granja.ManoDeObra
+                                     - gastoMateriaPrima}
+
+                {mensajeEstado}
+
+                Autor: Xavier Merida
+                """);
+        Console.ResetColor();
+    }
+
+    /// <summary>
+    /// Muestra un mensaje de error en color rojo sin cambiar la linea actual.
     /// </summary>
     /// <param name="mensajeError">Texto del error a mostrar.</param>
     static void MostrarErrorLine(string mensajeError)
     {
-        Console.ForegroundColor = ConsoleColor.Red;
-        Console.Write($"\r\e[K :: {mensajeError}\eM\r\e[K");
+        Console.ForegroundColor = ColorError;
+        Console.Write($"{LIMPIAR_LINEA} :: {mensajeError}\eM{LIMPIAR_LINEA}");
         Console.ResetColor();
-    }
-
-    /// <summary>
-    /// Resetea el color de consola, regresa al inicio de la linea actual y
-    /// elimina todo su contenido.
-    /// </summary>
-    static void ReiniciarLinea()
-    {
-        Console.ResetColor();
-        Console.Write("\r\e[K");
     }
 }

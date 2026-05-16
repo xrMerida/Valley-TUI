@@ -145,6 +145,21 @@ public class Granja
     }
 
     /// <summary>
+    /// Obtiene la parcela en la posición especificada.
+    /// </summary>
+    /// <param name="fila">Índice de fila.</param>
+    /// <param name="columna">Índice de columna.</param>
+    /// <returns>La parcela en la posición indicada.</returns>
+    /// <exception cref="IndexOutOfRangeException">
+    /// Si <paramref name="fila"/> o <paramref name="columna"/> no
+    /// se encuentran en el arreglo.
+    /// </exception>
+    public Parcela GetParcela (int fila, int columna)
+    {
+        return Parcelas[fila, columna];
+    }
+
+    /// <summary>
     /// Inicializa la granja con la configuración inicial del usuario.
     /// </summary>
     /// <param name="empleados">Cantidad de empleados. Debe ser mayor a 0.</param>
@@ -186,15 +201,6 @@ public class Granja
         MesesSimulados = 0;
         InventarioSemillas = [];
     }
-
-    /// <summary>
-    /// Obtiene la parcela en la posición especificada.
-    /// </summary>
-    /// <param name="fila">Índice de fila.</param>
-    /// <param name="columna">Índice de columna.</param>
-    /// <returns>La parcela en la posición indicada.</returns>
-    public Parcela GetParcela (int fila, int columna)
-        { return Parcelas[fila, columna]; }
 
     /// <summary>
     /// Compra una semilla y la agrega al inventario. Si ya existe
