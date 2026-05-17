@@ -34,13 +34,6 @@ public class Semilla
     public int Cantidad { get; private set; }
 
     /// <summary>
-    /// Identificador único auto-generado para cada tipo de semilla.
-    /// </summary>
-    public string Id { get; }
-
-    private static int s_SemillaId = 12345;
-
-    /// <summary>
     /// Inicializa un nuevo tipo de semilla con los parámetros especificados.
     /// </summary>
     /// <param name="nombre">Nombre del cultivo. No puede ser nulo ni vacío.</param>
@@ -74,8 +67,6 @@ public class Semilla
         Precio = precio;
         Ingresos = ingresos;
         Cantidad = 0;
-        Id = s_SemillaId.ToString();
-        s_SemillaId++;
     }
 
     /// <summary>
@@ -108,6 +99,6 @@ public class Semilla
     /// <summary>
     /// Establece la cantidad disponible a 0.
     /// </summary>
-    public void EliminarCantidad ()
+    public void Reiniciar()
         { Cantidad = 0; }
 }

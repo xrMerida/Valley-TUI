@@ -23,6 +23,18 @@ public class Parcela
     /// Ingresos esperados al cosechar la parcela.
     /// Retorna 0 si la parcela está libre.
     /// </summary>
+
+    /// <summary>
+    /// Indica si la parcela se encuentra libre (sin siembra).
+    /// </summary>
+    /// <returns><c>true</c> si está libre; <c>false</c> en caso contrario.</returns>
+    public bool EstaLibre
+    {
+        get
+        {
+            return Semilla == null;
+        }
+    }
     public decimal Ingresos
     {
         get
@@ -43,13 +55,6 @@ public class Parcela
         Semilla = null;
         MesesSimulados = 0;
     }
-
-    /// <summary>
-    /// Indica si la parcela se encuentra libre (sin siembra).
-    /// </summary>
-    /// <returns><c>true</c> si está libre; <c>false</c> en caso contrario.</returns>
-    public bool EstaLibre ()
-        { return Semilla == null; }
 
     /// <summary>
     /// Siembra una semilla en la parcela y reinicia el contador de meses.

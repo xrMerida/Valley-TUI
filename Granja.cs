@@ -70,7 +70,7 @@ public class Granja
             int parcelasLibres = 0;
             foreach (var parcela in Parcelas)
             {
-                if (parcela.EstaLibre())
+                if (parcela.EstaLibre)
                     parcelasLibres++;
             }
 
@@ -118,7 +118,7 @@ public class Granja
             foreach (var parcela in Parcelas)
             {
                 // Salta las parcelas libres
-                if (parcela.EstaLibre())
+                if (parcela.EstaLibre)
                     continue;
 
                 // Saltar las parcelas que no se pueden cosechar aun
@@ -186,12 +186,12 @@ public class Granja
             throw new ArgumentException("Los empleados deben de recibir un sueldo", nameof(sueldo));
 
         // lanza IndexOutOfRangeException cuando los valores son menores a 0
-        Parcelas = new Parcela[filas, columnas];
+        Parcelas = new Parcela[columnas, filas];
 
         // Inicializa todas las parcelas y las coloca con semillas vacias (null)
-        for (int i = 0; i < filas; i++)
+        for (int i = 0; i < columnas; i++)
         {
-            for (int j = 0; j < columnas; j++)
+            for (int j = 0; j < filas; j++)
                 Parcelas[i,j] = new();
         }
 
@@ -220,36 +220,35 @@ public class Granja
 
         // else
         // Verificar si ya poseia semillas de la nueva semilla
-        if (InventarioSemillas.Length > 0)
+        for (int i = 0; i < InventarioSemillas.Length; i++)
         {
-            for (int i = 0; i < InventarioSemillas.Length; i++)
-            {
-                // Continua si el Id no encaja
-                if (InventarioSemillas[i].Id != nuevaSemilla.Id)
-                    continue;
+            // Continua si el Nombre no encaja
+            if (InventarioSemillas[i].Nombre != nuevaSemilla.Nombre)
+                continue;
 
-                // else
-                InventarioSemillas[i].AgregarCantidad(nuevaSemilla.Cantidad);
-                // retorna inmediatamente
-                break;
-            }
+            // else
+            InventarioSemillas[i].AgregarCantidad(nuevaSemilla.Cantidad);
+
+            // retorna inmediatamente
+            Caja -= nuevaSemilla.Precio * nuevaSemilla.Cantidad;
+            return;
         }
 
         // Si no existia en el inventario
-        else
-        {
-            //
-            // Variable temporal para guardar las semillas almacenadas
-            // Se le suma uno ya que necesita un nuevo espacio
-            Semilla[] nuevoInventario = new Semilla[InventarioSemillas.Length + 1];
-            // Se copia el arreglo de semillas al nuevo inventario
-            for (int i = 0; i < InventarioSemillas.Length; i++)
-                nuevoInventario[i] = InventarioSemillas[i];
+        // Variable temporal para guardar las semillas almacenadas
+        // Se le suma uno ya que necesita un nuevo espacio
+        Semilla[] nuevoInventario = new Semilla[InventarioSemillas.Length + 1];
+        // Se copia el arreglo de semillas al nuevo inventario
+        for (int i = 0; i < InventarioSemillas.Length; i++)
+            nuevoInventario[i] = InventarioSemillas[i];
 
-            // Se coloca la nueva semilla al final
-            nuevoInventario[^1] = nuevaSemilla;
-            InventarioSemillas = nuevoInventario;
-        }
+        // Se coloca una copia de la nueva semilla al final
+        nuevoInventario[^1] = new Semilla(nuevaSemilla.Nombre,
+                                          nuevaSemilla.Meses,
+                                          nuevaSemilla.Precio,
+                                          nuevaSemilla.Ingresos);
+        nuevoInventario[^1].AgregarCantidad(nuevaSemilla.Cantidad);
+        InventarioSemillas = nuevoInventario;
 
         // Siempre se actualiza la cantidad de dinero
         Caja -= nuevaSemilla.Precio * nuevaSemilla.Cantidad;
@@ -318,7 +317,7 @@ public class Granja
             for (int j = 0; j < Parcelas.GetLength(1); j++)
             {
                 // Saltar las parcelas libres
-                if (Parcelas[i,j].EstaLibre())
+                if (Parcelas[i,j].EstaLibre)
                     continue;
 
                 // else

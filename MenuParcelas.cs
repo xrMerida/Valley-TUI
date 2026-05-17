@@ -37,9 +37,9 @@ public class MenuParcelas(Parcela[,] parcelas)
     public void Mostrar()
     {
         // Recorre las filas (GetLength(1)) y columnas (GetLength(0))
-        for (int j = 0; j < Parcelas.GetLength(1); j++)
+        for (int i = 0; i < Parcelas.GetLength(0); i++)
         {
-            for (int i = 0; i < Parcelas.GetLength(0); i++)
+            for (int j = 0; j < Parcelas.GetLength(0); j++)
             {
                 Console.ResetColor();
                 Parcela parcela = Parcelas[i, j];
@@ -69,15 +69,15 @@ public class MenuParcelas(Parcela[,] parcelas)
     /// </summary>
     public void MostrarSeleccion()
     {
-        for (int j = 0; j < Parcelas.GetLength(1); j++)
+        for (int i = 0; i < Parcelas.GetLength(0); i++)
         {
-            for (int i = 0; i < Parcelas.GetLength(0); i++)
+            for (int j = 0; j < Parcelas.GetLength(1); j++)
             {
                 Console.ResetColor();
                 Parcela parcela = Parcelas[i, j];
 
                 // Resalta la parcela seleccionada
-                if (i == SeleccionX && j == SeleccionY)
+                if (i == SeleccionY && j == SeleccionX)
                 {
                     Console.ForegroundColor = ConsoleColor.Green;
                     if (parcela.Semilla == null)
@@ -143,7 +143,7 @@ public class MenuParcelas(Parcela[,] parcelas)
 
             // Navega hacia abajo
             case ConsoleKey.DownArrow:
-                if (SeleccionY < Parcelas.GetLength(1) - 1)
+                if (SeleccionY < Parcelas.GetLength(0) - 1)
                     SeleccionY++;
                 // Vuelve a la primera fila si esta al final
                 else
@@ -156,12 +156,12 @@ public class MenuParcelas(Parcela[,] parcelas)
                     SeleccionY--;
                 // Va a la ultima fila si esta al inicio
                 else
-                    SeleccionY = Parcelas.GetLength(1) - 1;
+                    SeleccionY = Parcelas.GetLength(0) - 1;
                 return false;
 
             // Navega hacia la derecha
             case ConsoleKey.RightArrow:
-                if (SeleccionX < Parcelas.GetLength(0) - 1)
+                if (SeleccionX < Parcelas.GetLength(1) - 1)
                     SeleccionX++;
                 // Vuelve a la primera columna si esta al final
                 else
@@ -174,7 +174,7 @@ public class MenuParcelas(Parcela[,] parcelas)
                     SeleccionX--;
                 // Va a la ultima columna si esta al inicio
                 else
-                    SeleccionX = Parcelas.GetLength(0) - 1;
+                    SeleccionX = Parcelas.GetLength(1) - 1;
                 return false;
 
             // Ignora cualquier otra tecla

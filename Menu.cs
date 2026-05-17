@@ -12,7 +12,7 @@ public class Menu
     /// <summary>
     /// Indice de la opcion actualmente seleccionada en el menu.
     /// </summary>
-    public int Seleccion { get; private set; }
+    public int Seleccion { get; set; }
 
     /// <summary>
     /// Arreglo de textos que se mostraran como opciones del menu.
@@ -20,20 +20,37 @@ public class Menu
     public string[] Opciones { get; set; }
 
     /// <summary>
+    /// Mensaje dinamico que se muestra al final de cada menu.
+    /// </summary>
+    public string? MensajeEstado { get; set; }
+
+    /// <summary>
+    /// Color del mesnaje dinamico que se muestra al final de cada menu.
+    /// </summary>
+    public ConsoleColor? ColorMensajeEstado { get; set; }
+
+    /// <summary>
     /// Color que resalta la opcion seleccionada.
     /// </summary>
     public ConsoleColor ColorSeleccion { get; set; }
 
     /// <summary>
-    /// Color principal encabezado y del marco grafico.
+    /// Color principal de las lineas del encabezado si no se
+    /// especifica un color
     /// </summary>
     public ConsoleColor ColorPrincipal { get; set; }
 
     /// <summary>
-    /// Color secundario para las lineas del encabezado cuando no se
-    /// especifica uno en particular.
+    /// Color secundario para los margenes del encabezado
     /// </summary>
     public ConsoleColor ColorSecundario { get; set; }
+    public string OpcionSeleccionada
+    {
+        get
+        {
+            return Opciones[Seleccion];
+        }
+    }
 
     // Almacena las lineas del encabezado y sus respectivos colores
     private string[] Encabezado { get; set; }
@@ -48,13 +65,15 @@ public class Menu
     /// <summary>
     /// Crea un menu vacio con los valores predeterminados.
     /// </summary>
-    public Menu()
+    public Menu(string[] opciones)
     {
         Seleccion = 0;
-        Opciones = [];
+        Opciones = opciones;
         ColorSeleccion = ConsoleColor.Green;
         ColorPrincipal = ConsoleColor.Cyan;
         ColorSecundario = ConsoleColor.DarkGray;
+        ColorMensajeEstado = null;
+        MensajeEstado = null;
         Encabezado = [];
         ColoresEncabezado = [];
     }
@@ -64,8 +83,9 @@ public class Menu
     /// </summary>
     /// <param name="texto">Texto de la linea a agregar.</param>
     /// <param name="color">Color con el que se mostrara la linea.</param>
-    public void AgregarEncabezado(string texto, ConsoleColor color)
+    public void AgregarEncabezado(string texto, ConsoleColor? color)
     {
+        color ??= ColorPrincipal;
         // Se copian los arreglos y luego se agrega el nuevo encabezado al final
         string[] nuevoEncabezado = new string[Encabezado.Length + 1];
         ConsoleColor[] nuevoColor = new ConsoleColor[ColoresEncabezado.Length + 1];
@@ -77,7 +97,7 @@ public class Menu
 
         // Coloca el nuevo texto y color al final del arreglo
         nuevoEncabezado[^1] = texto;
-        nuevoColor[^1] = color;
+        nuevoColor[^1] = (ConsoleColor)color;
 
         Encabezado = nuevoEncabezado;
         ColoresEncabezado = nuevoColor;
@@ -104,7 +124,10 @@ public class Menu
     /// <summary>
     /// Muestra en consola todas las lineas del encabezado dentro de un marco.
     /// </summary>
-    public void MostrarEncabezado()
+    /// <param name="mostarMensajeEstado">
+    /// Si es <c>true</c>, se muestra el contenido de MensajeEstado al final.
+    /// </param>
+    public void MostrarEncabezado(bool mostarMensajeEstado)
     {
         // Marco superior del encabezado
         Console.ForegroundColor = ColorSecundario;
@@ -117,10 +140,26 @@ public class Menu
             Console.WriteLine($"   {Encabezado[i]}");
         }
 
+        if (mostarMensajeEstado)
+        {
+            Console.ForegroundColor = ColorMensajeEstado ?? ColorPrincipal;
+            Console.WriteLine($"   {MensajeEstado ?? "-"}");
+            MensajeEstado = null;
+            ColorMensajeEstado = null;
+        }
         // Marco inferior del encabezado
         Console.ForegroundColor = ColorSecundario;
         Console.WriteLine("------");
         Console.ResetColor();
+    }
+
+    /// <summary>
+    /// Muestra en consola todas las lineas del encabezado y el mensaje de estado
+    /// dentro de un marco.
+    /// </summary>
+    public void MostrarEncabezado ()
+    {
+        MostrarEncabezado(true);
     }
 
     /// <summary>
