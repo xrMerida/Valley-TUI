@@ -22,12 +22,12 @@ public class Menu
     /// <summary>
     /// Mensaje dinamico que se muestra al final de cada menu.
     /// </summary>
-    public string? MensajeEstado { get; set; }
+    public string? MensajeEstado { get; private set; }
 
     /// <summary>
     /// Color del mesnaje dinamico que se muestra al final de cada menu.
     /// </summary>
-    public ConsoleColor? ColorMensajeEstado { get; set; }
+    public ConsoleColor ColorMensajeEstado { get; private set; }
 
     /// <summary>
     /// Color que resalta la opcion seleccionada.
@@ -75,10 +75,32 @@ public class Menu
         ColorSeleccion = ConsoleColor.Green;
         ColorPrincipal = ConsoleColor.Cyan;
         ColorSecundario = ConsoleColor.DarkGray;
-        ColorMensajeEstado = null;
+        ColorMensajeEstado = ColorSecundario;
         MensajeEstado = null;
         Encabezado = [];
         ColoresEncabezado = [];
+    }
+
+    /// <summary>
+    /// Agrega un mensaje con un color especifico al final del
+    /// encabezado que se actualiza segun el estado del programa.
+    /// </summary>
+    /// <param name="mensaje">Mensaje de la linea a agregar.</param>
+    /// <param name="color">Color con el que se mostrara el <paramref name="mensaje"/>.</param>
+    public void SetMensajeEstado(string mensaje, ConsoleColor? color)
+    {
+        MensajeEstado = mensaje;
+        ColorMensajeEstado = color ?? ColorSecundario;
+    }
+
+    /// <summary>
+    /// Agrega un mensaje con un color el color secundario al final del
+    /// encabezado que se actualiza segun el estado del programa.
+    /// </summary>
+    /// <param name="mensaje">Texto de la linea a agregar.</param>
+    public void AgregarEncabezado(string mensaje)
+    {
+        AgregarEncabezado(mensaje, null);
     }
 
     /// <summary>
@@ -107,12 +129,12 @@ public class Menu
     }
 
     /// <summary>
-    /// Agrega una linea al encabezado usando el color secundario predeterminado.
+    /// Agrega una linea al encabezado usando el color principal predeterminado.
     /// </summary>
     /// <param name="texto">Texto de la linea a agregar.</param>
-    public void AgregarEncabezado(string texto)
+    public void SetMensajeEstado(string texto)
     {
-        AgregarEncabezado(texto, ColorPrincipal);
+        AgregarEncabezado(texto, null);
     }
 
     /// <summary>
@@ -145,10 +167,10 @@ public class Menu
 
         if (mostarMensajeEstado)
         {
-            Console.ForegroundColor = ColorMensajeEstado ?? ColorPrincipal;
+            Console.ForegroundColor = ColorMensajeEstado;
             Console.WriteLine($"   {MensajeEstado ?? "-"}");
             MensajeEstado = null;
-            ColorMensajeEstado = null;
+            ColorMensajeEstado = ColorSecundario;
         }
         // Marco inferior del encabezado
         Console.ForegroundColor = ColorSecundario;

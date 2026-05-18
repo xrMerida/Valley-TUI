@@ -34,6 +34,12 @@ public class Granja
     public Semilla[] InventarioSemillas { get; private set; }
 
     /// <summary>
+    /// Total de ingresos generados por cosechas listas en todos los
+    /// meses simulados.
+    /// </summary>
+    public decimal IngresosTotales { get; private set; }
+
+    /// <summary>
     /// Cantidad de meses que han sido simulados.
     /// </summary>
     public int MesesSimulados { get; private set; }
@@ -41,6 +47,7 @@ public class Granja
     /// <summary>
     /// Costo mensual total: producto entre empleados y sueldo.
     /// </summary>
+
     public decimal Costos
     {
         get
@@ -132,12 +139,6 @@ public class Granja
             return ingresos;
         }
     }
-
-    /// <summary>
-    /// Total de ingresos generados por cosechas listas en todos los
-    /// meses simulados.
-    /// </summary>
-    public decimal IngresosTotales { get; private set; }
 
     /// <summary>
     /// Proyección financiera: utilidad más ingresos por cosechar.

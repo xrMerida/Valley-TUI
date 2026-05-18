@@ -43,24 +43,25 @@ static class Program
         // Bucle principal del juego
         while (true)
         {
-            // Detecta si el usuario presiono Q
+            // Coloca un mensaje en el encabezado cuando el juego termina
             if (JuegoFinalizado)
             {
-                MenuPrincipal.ColorMensajeEstado = ColorError;
-                MenuPrincipal.MensajeEstado = "JUEGO FINALIZADO\n";
-                if (Granja.CajaEsperada <= 0)
-                    MenuPrincipal.MensajeEstado += "   -> NO TIENES MAS DINERO";
-                // Se suma 1 porque se toma en cuenta el siguiente mes
-                else if (Granja.MesesSimulados >= MesesTotal + 1)
-                    MenuPrincipal.MensajeEstado += "   -> NO TE QUEDAN MESES";
-                else if (MenuPrincipal.Seleccion == -1)
-                    MenuPrincipal.MensajeEstado += "   -> INTERRUPCION RECIBIDA";
+                // Si el usuario sale del juego
+                if (MenuPrincipal.Seleccion == -1)
+                    MenuPrincipal.SetMensajeEstado("INTERRUPCION RECIBIDA", ColorAdvertencia);
+                // Si el juego termino y la Caja esperada es menor a 0 entonces se quedo sin dinero
+                else if (Granja.CajaEsperada <= 0)
+                    MenuPrincipal.SetMensajeEstado("NO TIENES MÁS DINERO", ColorAdvertencia);
+                // Si se acabaron los meses
+                else if (Granja.MesesSimulados == MesesTotal)
+                    MenuPrincipal.SetMensajeEstado("SE ACABARON LOS MESES", ColorExito);
                 else
-                    MenuPrincipal.MensajeEstado += "   -> ERROR";
+                    MenuPrincipal.SetMensajeEstado("ERROR", ColorError);
             }
 
-            ///////////// ENCABEZADO ////////////////
+            do
             {
+                ///////////// ENCABEZADO ////////////////
                 MenuPrincipal.LimpiarEncabezado();
                 MenuPrincipal.AgregarEncabezado($"Caja del Mes: ${CajaDelMes}");
                 MenuPrincipal.AgregarEncabezado($"Caja: ${Granja.Caja}");
@@ -78,28 +79,24 @@ static class Program
                     colorCajaEsperada = ColorAdvertencia;
                 else
                     colorCajaEsperada = ColorExito;
-                // Muestra la Caja esperada con el color seleccionado
+                // Muestra la caja esperada con el color seleccionado
                 MenuPrincipal.AgregarEncabezado($"Caja esperada: ${Granja.CajaEsperada}", colorCajaEsperada);
-            }
-            ///////////// FIN ENCABEZADO ////////////////
+                ///////////// FIN ENCABEZADO ////////////////
 
-            Console.Clear();
-            // Cuando el juego termina se muestra el estado final y se sale
-            if (JuegoFinalizado)
-            {
-                MenuPrincipal.MostrarEncabezado();
-                MostrarContinuar();
-                break;
-            }
-
-            // Bucle que muestra el menu y espera una accion del usuario
-            // Separacion por encabezado constante
-            do
-            {
                 Console.Clear();
                 MenuPrincipal.MostrarEncabezado();
                 MenuPrincipal.MostrarOpciones();
+                if (JuegoFinalizado)
+                {
+                    Console.WriteLine();
+                    MostrarError("JUEGO TERMINADO");
+                    MostrarContinuar();
+                    break;
+                }
             } while (!MenuPrincipal.Leer());
+
+            if (JuegoFinalizado)
+                break;
 
             // Seleccion es -1 cuando el usuario solicita salir
             if (MenuPrincipal.Seleccion == -1)
@@ -299,10 +296,10 @@ static class Program
             {
                 ConsoleColor color;
                 menu.LimpiarEncabezado();
-                menu.AgregarEncabezado($"Caja: {Granja.Caja}");
-                menu.AgregarEncabezado($"Costos: {Granja.Costos}");
-                menu.AgregarEncabezado($"Utilidad: {Granja.Utilidad}");
-                menu.AgregarEncabezado($"Gasto total: {gastoTotal}", ColorAdvertencia);
+                menu.AgregarEncabezado($"Caja: ${Granja.Caja}");
+                menu.AgregarEncabezado($"Costos: ${Granja.Costos}");
+                menu.AgregarEncabezado($"Utilidad: ${Granja.Utilidad}");
+                menu.AgregarEncabezado($"Gasto total: ${gastoTotal}", ColorAdvertencia);
                 // Cuando ya no le queda utilidad
                 if (Granja.Utilidad < 0)
                 {
@@ -324,8 +321,8 @@ static class Program
                     menu.AgregarEncabezado($"Compra Maxima: {Math.Floor(Granja.Caja / tienda[menu.Seleccion].Precio)}", color);
                     esAsequible = true;
                 }
-                menu.AgregarEncabezado($"Precio: {tienda[menu.Seleccion].Precio}", color);
-                menu.AgregarEncabezado($"Ingresos: {tienda[menu.Seleccion].Ingresos}", color);
+                menu.AgregarEncabezado($"Precio: ${tienda[menu.Seleccion].Precio}", color);
+                menu.AgregarEncabezado($"Ingresos: ${tienda[menu.Seleccion].Ingresos}", color);
                 menu.AgregarEncabezado($"Meses: {tienda[menu.Seleccion].Meses}", color);
             }
             ///////////// FIN ENCABEZADO ////////////////
@@ -389,6 +386,7 @@ static class Program
             }
         }
         GastoMateriaPrima += gastoTotal;
+        MenuPrincipal.SetMensajeEstado($"Total gastado: {gastoTotal}", ColorAdvertencia);
     }
 
     static void Sembrar()
@@ -399,15 +397,13 @@ static class Program
             //////////////// VERIFICACIONES ////////////////
             if (Granja.ParcelasLibres == 0)
             {
-                MenuPrincipal.MensajeEstado = "No tienes parcelas para sembrar";
-                MenuPrincipal.ColorMensajeEstado = ColorError;
+                MenuPrincipal.SetMensajeEstado("No tienes parcelas para sembrar", ColorError);
                 return;
             }
 
             if (Granja.InventarioSemillas.Length == 0)
             {
-                MenuPrincipal.MensajeEstado = "No tienes semillas para plantar";
-                MenuPrincipal.ColorMensajeEstado = ColorError;
+                MenuPrincipal.SetMensajeEstado("No tienes semillas para plantar", ColorError);
                 return;
             }
 
@@ -446,7 +442,7 @@ static class Program
                 menu.LimpiarEncabezado();
                 menu.AgregarEncabezado($"Posicion X: {MenuParcelas.SeleccionX}");
                 menu.AgregarEncabezado($"Posicion Y: {MenuParcelas.SeleccionY}");
-                menu.AgregarEncabezado($"Semilla: {semilla.Nombre}");
+                menu.AgregarEncabezado($"Semilla: {semilla.Nombre}", ColorAdvertencia);
                 // Mostrar si la parcela esta libre
                 if (parcela.EstaLibre)
                     menu.AgregarEncabezado("Parcela: Libre", ColorExito);
@@ -466,8 +462,8 @@ static class Program
                 // Revisa si ya no se tiene de la semilla seleccionada en el inventario
                 if (semilla.Cantidad == 0)
                 {
-                    menu.MensajeEstado = $"Sin semillas de {semilla.Nombre}";
-                    menu.ColorMensajeEstado = ColorAdvertencia;
+                    // Coloca el mensaje de estado para el menu anterior
+                    menu.SetMensajeEstado($"Sin semillas de {semilla.Nombre}", ColorError);
                     Console.WriteLine();
                     MostrarContinuar();
                     break;
@@ -481,14 +477,12 @@ static class Program
 
                 if (!parcela.EstaLibre)
                 {
-                    menu.MensajeEstado = "Parcela ocupada";
-                    menu.ColorMensajeEstado = ColorError;
+                    menu.SetMensajeEstado("Parcela ocupada", ColorError);
                     continue;
                 }
 
                 Granja.Sembrar(menu.Seleccion, MenuParcelas.SeleccionY, MenuParcelas.SeleccionX);
-                menu.MensajeEstado = "Semilla plantada";
-                menu.ColorMensajeEstado = ColorExito;
+                menu.SetMensajeEstado("Semilla plantada", ColorExito);
 
                 // Si el arreglo de inventario cambia de tamaño se ha quedado sin semillas
                 if (Granja.InventarioSemillas.Length != menu.Opciones.Length)
@@ -541,8 +535,7 @@ static class Program
         // Asegura que el usuario plante todas las semillas posible antes de avanzar de mes
         if (Granja.InventarioSemillas.Length > 0 && Granja.ParcelasLibres > 0)
         {
-            MenuPrincipal.MensajeEstado = $"Aun tienes semillas y {Granja.ParcelasLibres} parcelas libres";
-            MenuPrincipal.ColorMensajeEstado = ColorError;
+            MenuPrincipal.SetMensajeEstado($"Aun tienes semillas y {Granja.ParcelasLibres} parcelas libres", ColorError);
             return;
         }
 
@@ -574,7 +567,7 @@ static class Program
             colorCajaEsperada = ColorAdvertencia;
         else
             colorCajaEsperada = ColorExito;
-        menu.AgregarEncabezado($"Caja esperada: {Granja.CajaEsperada}", colorCajaEsperada);
+        menu.AgregarEncabezado($"Caja esperada: ${Granja.CajaEsperada}", colorCajaEsperada);
         ///////////// FIN ENCABEZADO ///////////////
 
         Console.Clear();
@@ -584,18 +577,19 @@ static class Program
         Console.WriteLine();
         if (!PreguntarContinuar("Avanzar de mes"))
         {
-            MenuPrincipal.MensajeEstado = "Operacion Cancelada";
-            MenuPrincipal.ColorMensajeEstado = ColorError;
+            MenuPrincipal.SetMensajeEstado("Operacion cancelada", ColorError);
             return;
         }
 
         // else
-        MenuPrincipal.MensajeEstado = $"Ingresos: {Granja.IngresosEsperados}";
-        MenuPrincipal.ColorMensajeEstado = ColorExito;
-        JuegoFinalizado = Granja.CajaEsperada <= 0 || Granja.MesesSimulados == MesesTotal;
+        MenuPrincipal.SetMensajeEstado($"Ingresos: {Granja.IngresosEsperados}", ColorExito);
+        JuegoFinalizado = Granja.CajaEsperada <= 0;
         if (JuegoFinalizado)
             return;
+
         Granja.AvanzarMes();
+        // Si es el ultimo mes finaliza el juego
+        JuegoFinalizado = MesesTotal == Granja.MesesSimulados;
         CajaDelMes = Granja.Caja;
     }
 
@@ -645,16 +639,27 @@ static class Program
     }
 
     /// <summary>
+    /// Muestra un mensaje de error en color rojo sin cambiar la linea actual.
+    /// </summary>
+    /// <param name="mensajeError">Texto del error a mostrar.</param>
+    static void MostrarError(string mensajeError)
+    {
+        Console.ForegroundColor = ColorError;
+        Console.WriteLine($"{LIMPIAR_LINEA} :: {mensajeError}");
+        Console.ResetColor();
+    }
+
+    /// <summary>
     /// Muestra el mensaje "Presione enter para continuar" y espera
     /// a que el usuario presione la tecla Enter.
     /// </summary>
     static void MostrarContinuar()
     {
         Console.ForegroundColor = ColorInfo;
-        Console.Write($"{LIMPIAR_LINEA} :: Presione enter para continuar ");
+        Console.Write($"{LIMPIAR_LINEA} :: Presione enter para continuar");
         Console.ResetColor();
         // Espera a que el usuario presione enter
-        while (Console.ReadKey(true).Key != ConsoleKey.Enter);
+        while (Console.ReadKey(true).Key is not(ConsoleKey.Enter or ConsoleKey.Q));
         Console.Write(LIMPIAR_LINEA);
     }
 
