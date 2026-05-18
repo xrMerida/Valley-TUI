@@ -63,7 +63,6 @@ public class Menu
     // Se usa para actualizar el menu sin mover el cursor
     private const string LIMPIAR_LINEA = "\e[2K\r";
     // Guarda la posicion del cursor, avanza a la siguiente linea y restaura la posicion
-    private const string BORRAR_LINEA = "\e[2K\eM\r";
 
     /// <summary>
     /// Crea un menu vacio con los valores predeterminados.
@@ -253,17 +252,17 @@ public class Menu
                     Console.ResetColor();
 
                     // Cancela la salida si no es Y
-                    if (Console.ReadKey(true).Key is not (ConsoleKey.Y or ConsoleKey.Enter ))
+                    if (Console.ReadKey(true).Key is not (ConsoleKey.Y or ConsoleKey.Enter))
                         return false;
                 }
 
                 Seleccion = -1;
-                Console.Write(BORRAR_LINEA);
+                Console.Write(LIMPIAR_LINEA);
                 return true;
 
             // Confirma la opcion seleccionada
             case ConsoleKey.Enter:
-                Console.Write(BORRAR_LINEA);
+                Console.Write(LIMPIAR_LINEA);
                 return true;
 
             // Navega a la siguiente opcion 

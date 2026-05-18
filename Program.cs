@@ -88,7 +88,6 @@ static class Program
                 MenuPrincipal.MostrarOpciones();
                 if (JuegoFinalizado)
                 {
-                    Console.WriteLine();
                     MostrarError("JUEGO TERMINADO");
                     MostrarContinuar();
                     break;
@@ -440,8 +439,8 @@ static class Program
                 Parcela parcela = Granja.Parcelas[MenuParcelas.SeleccionY, MenuParcelas.SeleccionX];
                 ///////////////// ENCABEZADO /////////////////
                 menu.LimpiarEncabezado();
-                menu.AgregarEncabezado($"Posicion X: {MenuParcelas.SeleccionX}");
-                menu.AgregarEncabezado($"Posicion Y: {MenuParcelas.SeleccionY}");
+                menu.AgregarEncabezado($"Columna: {MenuParcelas.SeleccionX}");
+                menu.AgregarEncabezado($"Fila: {MenuParcelas.SeleccionY}");
                 menu.AgregarEncabezado($"Semilla: {semilla.Nombre}", ColorAdvertencia);
                 // Mostrar si la parcela esta libre
                 if (parcela.EstaLibre)
@@ -464,7 +463,6 @@ static class Program
                 {
                     // Coloca el mensaje de estado para el menu anterior
                     menu.SetMensajeEstado($"Sin semillas de {semilla.Nombre}", ColorError);
-                    Console.WriteLine();
                     MostrarContinuar();
                     break;
                 }
@@ -503,8 +501,8 @@ static class Program
             Parcela parcela = Granja.Parcelas[MenuParcelas.SeleccionY, MenuParcelas.SeleccionX];
             ///////////// ENCABEZADO ////////////////
             menu.LimpiarEncabezado();
-            menu.AgregarEncabezado($"Posición X: {MenuParcelas.SeleccionX}");
-            menu.AgregarEncabezado($"Posición Y: {MenuParcelas.SeleccionY}");
+            menu.AgregarEncabezado($"Columna: {MenuParcelas.SeleccionX}");
+            menu.AgregarEncabezado($"Fila: {MenuParcelas.SeleccionY}");
             if (parcela.Semilla == null)
             {
                 menu.AgregarEncabezado("Plantacion: Libre", ColorAdvertencia);
@@ -574,7 +572,6 @@ static class Program
         menu.MostrarEncabezado(false);
         MenuParcelas.Mostrar();
 
-        Console.WriteLine();
         if (!PreguntarContinuar("Avanzar de mes"))
         {
             MenuPrincipal.SetMensajeEstado("Operacion cancelada", ColorError);
