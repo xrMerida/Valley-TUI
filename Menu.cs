@@ -44,6 +44,9 @@ public class Menu
     /// Color secundario para los margenes del encabezado
     /// </summary>
     public ConsoleColor ColorSecundario { get; set; }
+    /// <summary>
+    /// Devuelve el texto de la opcion actualmente seleccionada.
+    /// </summary>
     public string OpcionSeleccionada
     {
         get

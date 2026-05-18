@@ -20,14 +20,8 @@ public class Parcela
     public int MesesSimulados { get; private set; }
 
     /// <summary>
-    /// Ingresos esperados al cosechar la parcela.
-    /// Retorna 0 si la parcela está libre.
-    /// </summary>
-
-    /// <summary>
     /// Indica si la parcela se encuentra libre (sin siembra).
     /// </summary>
-    /// <returns><c>true</c> si está libre; <c>false</c> en caso contrario.</returns>
     public bool EstaLibre
     {
         get
@@ -35,6 +29,11 @@ public class Parcela
             return Semilla == null;
         }
     }
+
+    /// <summary>
+    /// Ingresos esperados al cosechar la parcela.
+    /// Retorna 0 si la parcela está libre.
+    /// </summary>
     public decimal Ingresos
     {
         get

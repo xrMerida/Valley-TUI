@@ -39,7 +39,7 @@ public class MenuParcelas(Parcela[,] parcelas)
         // Recorre las filas (GetLength(1)) y columnas (GetLength(0))
         for (int i = 0; i < Parcelas.GetLength(0); i++)
         {
-            for (int j = 0; j < Parcelas.GetLength(0); j++)
+            for (int j = 0; j < Parcelas.GetLength(1); j++)
             {
                 Console.ResetColor();
                 Parcela parcela = Parcelas[i, j];

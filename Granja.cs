@@ -110,7 +110,7 @@ public class Granja
     /// <summary>
     /// Total de ingresos generados por cosechas listas en el mes actual.
     /// </summary>
-    public decimal Ingresos
+    public decimal IngresosEsperados
     {
         get
         {
@@ -134,13 +134,19 @@ public class Granja
     }
 
     /// <summary>
+    /// Total de ingresos generados por cosechas listas en todos los
+    /// meses simulados.
+    /// </summary>
+    public decimal IngresosTotales { get; private set; }
+
+    /// <summary>
     /// Proyección financiera: utilidad más ingresos por cosechar.
     /// </summary>
     public decimal CajaEsperada
     {
         get
         {
-            return Utilidad + Ingresos;
+            return Utilidad + IngresosEsperados;
         }
     }
 
@@ -311,6 +317,8 @@ public class Granja
     /// </summary>
     public void AvanzarMes ()
     {
+        IngresosTotales += IngresosEsperados;
+
         Caja -= Costos;
         for (int i = 0; i < Parcelas.GetLength(0); i++)
         {
