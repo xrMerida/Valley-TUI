@@ -59,6 +59,7 @@ public class MenuParcelas(Parcela[,] parcelas)
             Console.WriteLine();
         }
         Console.ResetColor();
+        Console.WriteLine();
     }
 
     /// <summary>
@@ -96,6 +97,7 @@ public class MenuParcelas(Parcela[,] parcelas)
             }
             Console.WriteLine();
         }
+        Console.WriteLine();
         Console.ResetColor();
     }
 
@@ -113,7 +115,7 @@ public class MenuParcelas(Parcela[,] parcelas)
     public bool Leer(bool confirmarSalida)
     {
         Console.ForegroundColor = ConsoleColor.DarkGray;
-        Console.Write($"\n{LIMPIAR_LINEA}      \u2190\u2191\u2193\u2192 navegar    \u21B5 seleccionar    Q salir  ");
+        Console.Write($"{LIMPIAR_LINEA}      \u2190\u2191\u2193\u2192 navegar    \u21B5 seleccionar    Q salir  ");
         Console.ResetColor();
         ConsoleKeyInfo keyInfo = Console.ReadKey(true);
 

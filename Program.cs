@@ -31,6 +31,14 @@ static class Program
         InicializarGranja();
 
         ////////// MENU PRINCIPAL //////////
+        MostrarMenuPrincipal();
+
+        ////////////// SALIDA //////////////
+        MostrarResumenFinal();
+    }
+
+    static void MostrarMenuPrincipal()
+    {
         MenuPrincipal =
         new([
             "Comprar Semillas",
@@ -43,22 +51,7 @@ static class Program
         // Bucle principal del juego
         while (true)
         {
-            // Coloca un mensaje en el encabezado cuando el juego termina
-            if (JuegoFinalizado)
-            {
-                // Si el usuario sale del juego
-                if (MenuPrincipal.Seleccion == -1)
-                    MenuPrincipal.SetMensajeEstado("INTERRUPCION RECIBIDA", ColorAdvertencia);
-                // Si el juego termino y la Caja esperada es menor a 0 entonces se quedo sin dinero
-                else if (Granja.CajaEsperada <= 0)
-                    MenuPrincipal.SetMensajeEstado("NO TIENES MÁS DINERO", ColorAdvertencia);
-                // Si se acabaron los meses
-                else if (Granja.MesesSimulados == MesesTotal)
-                    MenuPrincipal.SetMensajeEstado("SE ACABARON LOS MESES", ColorExito);
-                else
-                    MenuPrincipal.SetMensajeEstado("ERROR", ColorError);
-            }
-
+            // Bulce del menu principal
             do
             {
                 ///////////// ENCABEZADO ////////////////
@@ -67,10 +60,10 @@ static class Program
                 MenuPrincipal.AgregarEncabezado($"Caja: ${Granja.Caja}");
                 MenuPrincipal.AgregarEncabezado($"Costos: ${Granja.Costos}");
                 // Muestra los meses restantes
-                if (Granja.MesesSimulados < MesesTotal)
-                    MenuPrincipal.AgregarEncabezado($"Mes: {Granja.MesesSimulados} / {MesesTotal}", ColorExito);
-                else
+                if (Granja.MesesSimulados >= MesesTotal - 1)
                     MenuPrincipal.AgregarEncabezado($"ULTIMO MES: {Granja.MesesSimulados} / {MesesTotal}", ColorAdvertencia);
+                else
+                    MenuPrincipal.AgregarEncabezado($"Mes: {Granja.MesesSimulados} / {MesesTotal}", ColorExito);
                 // Coloca el color de la Caja esperada
                 ConsoleColor colorCajaEsperada;
                 if (Granja.CajaEsperada <= 0)
@@ -86,23 +79,22 @@ static class Program
                 Console.Clear();
                 MenuPrincipal.MostrarEncabezado();
                 MenuPrincipal.MostrarOpciones();
+                // Termina el menu principal una vez acaba el juego
                 if (JuegoFinalizado)
-                    break;
+                {
+                    MostrarContinuar("JUEGO TERMINADO, Presione enter para continuar", ColorAdvertencia);
+                    return;
+                }
             } while (!MenuPrincipal.Leer());
-
-            if (JuegoFinalizado)
-            {
-                MostrarError("JUEGO TERMINADO");
-                MostrarContinuar();
-                break;
-            }
 
             // Seleccion es -1 cuando el usuario solicita salir
             if (MenuPrincipal.Seleccion == -1)
             {
+                MenuPrincipal.SetMensajeEstado("INTERRUPCION RECIBIDA", ColorError);
                 JuegoFinalizado = true;
                 continue;
             }
+
 
             Console.Clear();
             switch (MenuPrincipal.Opciones[MenuPrincipal.Seleccion])
@@ -121,9 +113,6 @@ static class Program
                     break;
             }
         }
-
-        ////////////// SALIDA //////////////
-        MostrarResumenFinal();
     }
 
     static void InicializarGranja()
@@ -298,7 +287,6 @@ static class Program
                 menu.AgregarEncabezado($"Caja: ${Granja.Caja}");
                 menu.AgregarEncabezado($"Costos: ${Granja.Costos}");
                 menu.AgregarEncabezado($"Utilidad: ${Granja.Utilidad}");
-                menu.AgregarEncabezado($"Gasto total: ${gastoTotal}", ColorAdvertencia);
                 // Cuando ya no le queda utilidad
                 if (Granja.Utilidad < 0)
                 {
@@ -385,7 +373,7 @@ static class Program
             }
         }
         GastoMateriaPrima += gastoTotal;
-        MenuPrincipal.SetMensajeEstado($"Total gastado: {gastoTotal}", ColorAdvertencia);
+        MenuPrincipal.SetMensajeEstado($"Total gastado: ${gastoTotal}", ColorAdvertencia);
     }
 
     static void Sembrar()
@@ -513,7 +501,7 @@ static class Program
             {
                 menu.AgregarEncabezado($"Plantacion: {parcela.Semilla.Nombre}", ColorExito);
                 menu.AgregarEncabezado($"Ingresos: {parcela.Ingresos}", ColorExito);
-                menu.AgregarEncabezado($"Meses: {parcela.MesesSimulados} / {parcela.Semilla.Meses}", ColorExito);
+                menu.AgregarEncabezado($"Meses: {parcela.MesesSimulados} / {parcela.Semilla.Meses}  ({parcela.Semilla.Meses - parcela.MesesSimulados})", ColorExito);
             }
             ///////////// FIN ENCABEZADO ////////////////
 
@@ -556,7 +544,7 @@ static class Program
             colorIngresos = ColorAdvertencia;
         else
             colorIngresos = ColorExito;
-        menu.AgregarEncabezado($"Ingresos Esperados: {Granja.IngresosEsperados}", colorIngresos);
+        menu.AgregarEncabezado($"Ingresos Esperados: ${Granja.IngresosEsperados}", colorIngresos);
         // Asigna el color de la caja esperada
         ConsoleColor colorCajaEsperada;
         if (Granja.CajaEsperada <= 0)
@@ -578,16 +566,27 @@ static class Program
             return;
         }
 
-        // else
-        MenuPrincipal.SetMensajeEstado($"Ingresos: {Granja.IngresosEsperados}", ColorExito);
-        JuegoFinalizado = Granja.CajaEsperada <= 0;
-        if (JuegoFinalizado)
+        if (Granja.CajaEsperada <= 0)
+        {
+            MenuPrincipal.SetMensajeEstado("NO TIENES MÁS DINERO", ColorError);
+            JuegoFinalizado = true;
+            // Retorna para mantener el estado con dinero positivo (Pantalla Final)
             return;
+        }
+        // Cuando se queda sin dinero
+        else if (Granja.MesesSimulados == MesesTotal - 1)
+        {
+            MenuPrincipal.SetMensajeEstado("GANASTE EL JUEGO", ColorExito);
+            JuegoFinalizado = true;
+        }
+        // Si aun le quedan meses y dinero
+        else
+        {
+            MenuPrincipal.SetMensajeEstado($"Ingresos: ${Granja.IngresosEsperados}", ColorExito);
+        }
 
+        CajaDelMes = Granja.CajaEsperada;
         Granja.AvanzarMes();
-        // Si es el ultimo mes finaliza el juego
-        JuegoFinalizado = MesesTotal == Granja.MesesSimulados;
-        CajaDelMes = Granja.Caja;
     }
 
     /// <summary>
@@ -604,23 +603,23 @@ static class Program
                 ╚██╗ ██╔╝██╔══██║██║     ██║     ██╔══╝    ╚██╔╝         ██║   ██║   ██║██║
                  ╚████╔╝ ██║  ██║███████╗███████╗███████╗   ██║          ██║   ╚██████╔╝██║
                   ╚═══╝  ╚═╝  ╚═╝╚══════╝╚══════╝╚══════╝   ╚═╝          ╚═╝    ╚═════╝ ╚═╝
+
                 """);
         Console.ForegroundColor = ColorInfo;
         Console.WriteLine($"""
+                             Capital Inicial: ${CapitalInicial}
+                             Ingresos Totales: ${Granja.IngresosTotales}
+                             Mano de Obra: ${Granja.ManoDeObra}
+                             Inventario en Proceso: ${Granja.InventarioEnProceso}
+                             Materia Prima: ${GastoMateriaPrima}
+                             Utilidad Final: ${CapitalInicial
+                                               + Granja.IngresosTotales
+                                               + Granja.InventarioEnProceso
+                                               - Granja.ManoDeObra
+                                               - GastoMateriaPrima}
 
-                   Capital Inicial: ${CapitalInicial}
-                   Ingresos Totales: ${Granja.IngresosTotales}
-                   Mano de Obra: ${Granja.ManoDeObra}
-                   Inventario en Proceso: ${Granja.InventarioEnProceso}
-                   Materia Prima: ${GastoMateriaPrima}
-                   Utilidad Final: ${CapitalInicial
-                                     + Granja.IngresosTotales
-                                     + Granja.InventarioEnProceso
-                                     - Granja.ManoDeObra
-                                     - GastoMateriaPrima}
-
-                Autor: Xavier Merida
-                """);
+                          - Autor: Xavier Merida
+                          """);
         Console.ResetColor();
     }
 
@@ -636,24 +635,13 @@ static class Program
     }
 
     /// <summary>
-    /// Muestra un mensaje de error en color rojo sin cambiar la linea actual.
-    /// </summary>
-    /// <param name="mensajeError">Texto del error a mostrar.</param>
-    static void MostrarError(string mensajeError)
-    {
-        Console.ForegroundColor = ColorError;
-        Console.WriteLine($"{LIMPIAR_LINEA} :: {mensajeError}");
-        Console.ResetColor();
-    }
-
-    /// <summary>
     /// Muestra el mensaje "Presione enter para continuar" y espera
     /// a que el usuario presione la tecla Enter.
     /// </summary>
-    static void MostrarContinuar()
+    static void MostrarContinuar(string mensaje = "Presione enter para continuar", ConsoleColor color = ColorInfo)
     {
-        Console.ForegroundColor = ColorInfo;
-        Console.Write($"{LIMPIAR_LINEA} :: Presione enter para continuar");
+        Console.ForegroundColor = color;
+        Console.Write($"{LIMPIAR_LINEA} :: {mensaje}");
         Console.ResetColor();
         // Espera a que el usuario presione enter
         while (Console.ReadKey(true).Key is not(ConsoleKey.Enter or ConsoleKey.Q));
