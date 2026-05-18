@@ -211,6 +211,7 @@ public class Menu
             // Muestra el numero y el nombre de la opcion
             Console.WriteLine($"{i + 1}  {Opciones[i]}");
         }
+        Console.WriteLine();
     }
 
     /// <summary>
@@ -226,7 +227,7 @@ public class Menu
     public bool Leer(bool confirmarSalida)
     {
         Console.ForegroundColor = ConsoleColor.DarkGray;
-        Console.Write($"\n{LIMPIAR_LINEA}      \u2191\u2193 navegar    \u21B2 seleccionar    Q salir  ");
+        Console.Write($"{LIMPIAR_LINEA}      \u2191\u2193 navegar    \u21B5 seleccionar    Q salir  ");
         Console.ResetColor();
 
         ConsoleKeyInfo keyInfo = Console.ReadKey(true);

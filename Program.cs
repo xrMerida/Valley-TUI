@@ -87,15 +87,15 @@ static class Program
                 MenuPrincipal.MostrarEncabezado();
                 MenuPrincipal.MostrarOpciones();
                 if (JuegoFinalizado)
-                {
-                    MostrarError("JUEGO TERMINADO");
-                    MostrarContinuar();
                     break;
-                }
             } while (!MenuPrincipal.Leer());
 
             if (JuegoFinalizado)
+            {
+                MostrarError("JUEGO TERMINADO");
+                MostrarContinuar();
                 break;
+            }
 
             // Seleccion es -1 cuando el usuario solicita salir
             if (MenuPrincipal.Seleccion == -1)

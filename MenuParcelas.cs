@@ -26,8 +26,6 @@ public class MenuParcelas(Parcela[,] parcelas)
 
     // Secuencia de escape que elimina la linea actual
     private const string LIMPIAR_LINEA = "\e[2K\r";
-    // Guarda la posicion del cursor, avanza a la siguiente linea y restaura la posicion
-    private const string BORRAR_LINEA = "\e[2K\eM\r";
 
     /// <summary>
     /// Muestra la cuadricula completa de parcelas sin resaltar ninguna.
@@ -115,7 +113,7 @@ public class MenuParcelas(Parcela[,] parcelas)
     public bool Leer(bool confirmarSalida)
     {
         Console.ForegroundColor = ConsoleColor.DarkGray;
-        Console.Write($"\n{LIMPIAR_LINEA}      \u2190\u2191\u2193\u2192 navegar    \u21B2 seleccionar    Q salir  ");
+        Console.Write($"\n{LIMPIAR_LINEA}      \u2190\u2191\u2193\u2192 navegar    \u21B5 seleccionar    Q salir  ");
         Console.ResetColor();
         ConsoleKeyInfo keyInfo = Console.ReadKey(true);
 
@@ -134,7 +132,7 @@ public class MenuParcelas(Parcela[,] parcelas)
                 }
                 SeleccionX = -1;
                 SeleccionY = -1;
-                Console.Write(BORRAR_LINEA);
+                Console.Write(LIMPIAR_LINEA);
                 return true;
 
             // Confirma la parcela seleccionada
