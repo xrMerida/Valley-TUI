@@ -77,7 +77,7 @@ public class Granja
             int parcelasLibres = 0;
             foreach (var parcela in Parcelas)
             {
-                if (parcela.EstaLibre)
+                if (parcela.Semilla == null)
                     parcelasLibres++;
             }
 
@@ -125,7 +125,7 @@ public class Granja
             foreach (var parcela in Parcelas)
             {
                 // Salta las parcelas libres
-                if (parcela.EstaLibre)
+                if (parcela.Semilla == null)
                     continue;
 
                 // Saltar las parcelas que no se pueden cosechar aun
@@ -311,7 +311,7 @@ public class Granja
             for (int j = 0; j < Parcelas.GetLength(1); j++)
             {
                 // Saltar las parcelas libres
-                if (Parcelas[i,j].EstaLibre)
+                if (Parcelas[i,j].Semilla == null)
                     continue;
 
                 // else

@@ -253,6 +253,14 @@ static class Program
         Console.ResetColor();
 
         Granja = new(empleados, sueldo, CapitalInicial, filas, columnas);
+
+    }
+    // Muestra un error sin saltar de linea
+    static void MostrarErrorLine(string mensajeError)
+    {
+        Console.ForegroundColor = ColorError;
+        Console.Write($"{LIMPIAR_LINEA} :: {mensajeError}\eM{LIMPIAR_LINEA}");
+        Console.ResetColor();
     }
 
     static void ComprarSemillas()
@@ -272,57 +280,53 @@ static class Program
 
         // Le asigna el nombre de cada semilla al menu
         for (int i = 0; i < tienda.Length; i++)
-        {
             menu.Opciones[i] = tienda[i].Nombre;
-        }
 
         decimal gastoTotal = 0;
         while (true)
         {
             bool esAsequible;
             ///////////// ENCABEZADO ////////////////
+            menu.LimpiarEncabezado();
+            menu.AgregarEncabezado($"Caja: ${Granja.Caja}");
+            menu.AgregarEncabezado($"Costos: ${Granja.Costos}");
+            menu.AgregarEncabezado($"Utilidad: ${Granja.Utilidad}");
+            // Cuando ya no le queda utilidad
+            ConsoleColor color;
+            if (Granja.Utilidad < 0)
             {
-                ConsoleColor color;
-                menu.LimpiarEncabezado();
-                menu.AgregarEncabezado($"Caja: ${Granja.Caja}");
-                menu.AgregarEncabezado($"Costos: ${Granja.Costos}");
-                menu.AgregarEncabezado($"Utilidad: ${Granja.Utilidad}");
-                // Cuando ya no le queda utilidad
-                if (Granja.Utilidad < 0)
-                {
-                    esAsequible = false;
-                    color = ColorError;
-                    menu.AgregarEncabezado("Sin utilidad", color);
-                }
-                // Cuando no tiene suficiente dinero
-                else if (Granja.Caja < tienda[menu.Seleccion].Precio)
-                {
-                    color = ColorError;
-                    menu.AgregarEncabezado("Inasequible", color);
-                    esAsequible = false;
-                }
-                // Cuando lo puede comprar
-                else
-                {
-                    color = ColorExito;
-                    menu.AgregarEncabezado($"Compra Maxima: {Math.Floor(Granja.Caja / tienda[menu.Seleccion].Precio)}", color);
-                    esAsequible = true;
-                }
-                menu.AgregarEncabezado($"Precio: ${tienda[menu.Seleccion].Precio}", color);
-                menu.AgregarEncabezado($"Ingresos: ${tienda[menu.Seleccion].Ingresos}", color);
-                menu.AgregarEncabezado($"Meses: {tienda[menu.Seleccion].Meses}", color);
+                esAsequible = false;
+                color = ColorError;
+                menu.AgregarEncabezado("Sin utilidad", color);
             }
+            // Cuando no tiene suficiente dinero
+            else if (Granja.Caja < tienda[menu.Seleccion].Precio)
+            {
+                color = ColorError;
+                menu.AgregarEncabezado("Inasequible", color);
+                esAsequible = false;
+            }
+            // Cuando lo puede comprar
+            else
+            {
+                color = ColorExito;
+                menu.AgregarEncabezado($"Compra Maxima: {Math.Floor(Granja.Caja / tienda[menu.Seleccion].Precio)}", color);
+                esAsequible = true;
+            }
+            menu.AgregarEncabezado($"Precio: ${tienda[menu.Seleccion].Precio}", color);
+            menu.AgregarEncabezado($"Ingresos: ${tienda[menu.Seleccion].Ingresos}", color);
+            menu.AgregarEncabezado($"Meses: {tienda[menu.Seleccion].Meses}", color);
             ///////////// FIN ENCABEZADO ////////////////
 
             Console.Clear();
             menu.MostrarEncabezado(false);
-            // Muestra el inventario
+            // Muestra el inventario si tiene semillas
             if (Granja.InventarioSemillas.Length > 0)
             {
                 Console.ForegroundColor = ColorAdvertencia;
                 foreach (var semilla in Granja.InventarioSemillas)
                     Console.WriteLine($"   {semilla.Nombre}: {semilla.Cantidad}");
-                Console.ForegroundColor = ConsoleColor.DarkGray;
+                Console.ForegroundColor = menu.ColorSecundario;
                 Console.WriteLine("------");
             }
             menu.MostrarOpciones();
@@ -347,7 +351,9 @@ static class Program
                 string seleccion = Console.ReadLine() ?? "";
 
                 if (seleccion is "Q" or "q")
+                {
                     break;
+                }
                 if (!int.TryParse(seleccion, out int cantidad))
                 {
                     MostrarErrorLine("Ingrese un numero");
@@ -372,13 +378,13 @@ static class Program
                 break;
             }
         }
+
         GastoMateriaPrima += gastoTotal;
         MenuPrincipal.SetMensajeEstado($"Total gastado: ${gastoTotal}", ColorAdvertencia);
     }
 
     static void Sembrar()
     {
-        Menu menu;
         while (true)
         {
             //////////////// VERIFICACIONES ////////////////
@@ -387,28 +393,30 @@ static class Program
                 MenuPrincipal.SetMensajeEstado("No tienes parcelas para sembrar", ColorError);
                 return;
             }
-
             if (Granja.InventarioSemillas.Length == 0)
             {
-                MenuPrincipal.SetMensajeEstado("No tienes semillas para plantar", ColorError);
+                MenuPrincipal.SetMensajeEstado("No tienes semillas para sembrar", ColorError);
                 return;
             }
-
-            // Le asigna las nuevas opciones al menu
-            menu = new(new string[Granja.InventarioSemillas.Length]);
-            for (int i = 0; i < menu.Opciones.Length; i++)
-                menu.Opciones[i] = Granja.InventarioSemillas[i].Nombre;
             //////////////// FIN VERIFICACIONES ////////////////
 
+            // Le asigna las nuevas opciones al menu
+            Menu menu = new(new string[Granja.InventarioSemillas.Length]);
+            for (int i = 0; i < menu.Opciones.Length; i++)
+                menu.Opciones[i] = Granja.InventarioSemillas[i].Nombre;
 
+            MenuParcelas = new (Granja.Parcelas);
+            Parcela parcela;
             Semilla semilla;
+
+            ///////////// SELECCION DE SEMILLA /////////////
             do
             {
                 semilla = Granja.InventarioSemillas[menu.Seleccion];
                 ///////////////// ENCABEZADO /////////////////
                 menu.LimpiarEncabezado();
                 menu.AgregarEncabezado($"Parcelas Libres: {Granja.ParcelasLibres}");
-                menu.AgregarEncabezado($"Ingresos: {semilla.Ingresos}", ColorExito);
+                menu.AgregarEncabezado($"Ingresos: ${semilla.Ingresos}", ColorExito);
                 menu.AgregarEncabezado($"Inventario: {semilla.Cantidad}", ColorExito);
                 ///////////////// FIN ENCABEZADO /////////////////
 
@@ -420,18 +428,17 @@ static class Program
             if (menu.Seleccion == -1)
                 break;
 
-            MenuParcelas = new (Granja.Parcelas);
-            semilla = Granja.InventarioSemillas[menu.Seleccion];
+            ///////////// SELECCION DE PARCELA /////////////
             while (true)
             {
-                Parcela parcela = Granja.Parcelas[MenuParcelas.SeleccionY, MenuParcelas.SeleccionX];
+                parcela = Granja.Parcelas[MenuParcelas.SeleccionY, MenuParcelas.SeleccionX];
                 ///////////////// ENCABEZADO /////////////////
                 menu.LimpiarEncabezado();
                 menu.AgregarEncabezado($"Columna: {MenuParcelas.SeleccionX}");
                 menu.AgregarEncabezado($"Fila: {MenuParcelas.SeleccionY}");
                 menu.AgregarEncabezado($"Semilla: {semilla.Nombre}", ColorAdvertencia);
                 // Mostrar si la parcela esta libre
-                if (parcela.EstaLibre)
+                if (parcela.Semilla == null)
                     menu.AgregarEncabezado("Parcela: Libre", ColorExito);
                 else
                     menu.AgregarEncabezado("Parcela: Ocupada", ColorAdvertencia);
@@ -445,13 +452,10 @@ static class Program
                 Console.Clear();
                 menu.MostrarEncabezado();
                 MenuParcelas.MostrarSeleccion();
-
-                // Revisa si ya no se tiene de la semilla seleccionada en el inventario
+                // Muestra un error cuando ya no quedan semillas
                 if (semilla.Cantidad == 0)
                 {
-                    // Coloca el mensaje de estado para el menu anterior
-                    menu.SetMensajeEstado($"Sin semillas de {semilla.Nombre}", ColorError);
-                    MostrarContinuar();
+                    MostrarContinuar($"Ya no quedan semillas de {semilla.Nombre}", ColorError);
                     break;
                 }
 
@@ -459,31 +463,30 @@ static class Program
                     continue;
 
                 if (MenuParcelas.SeleccionX == -1)
-                    break;
-
-                if (!parcela.EstaLibre)
                 {
-                    menu.SetMensajeEstado("Parcela ocupada", ColorError);
+                    break;
+                }
+                if (parcela.Semilla != null)
+                {
+                    menu.SetMensajeEstado($"No se puede sembrar sobre {parcela.Semilla.Nombre}", ColorError);
                     continue;
                 }
 
+                // else
                 Granja.Sembrar(menu.Seleccion, MenuParcelas.SeleccionY, MenuParcelas.SeleccionX);
                 menu.SetMensajeEstado("Semilla plantada", ColorExito);
 
-                // Si el arreglo de inventario cambia de tamaño se ha quedado sin semillas
+                // Verificar: Si el inventario cambia de tamaño es porque la semilla fue eliminada
                 if (Granja.InventarioSemillas.Length != menu.Opciones.Length)
                     semilla.Reiniciar();
             }
         }
     }
 
-    /// <summary>
-    /// Muestra el estado actual de todas las parcelas de la granja.
-    /// </summary>
     static void ConsultarParcelas()
     {
         Menu menu = new([]);
-        MenuParcelas = new (Granja.Parcelas);
+        MenuParcelas = new(Granja.Parcelas);
         do
         {
             Parcela parcela = Granja.Parcelas[MenuParcelas.SeleccionY, MenuParcelas.SeleccionX];
@@ -491,6 +494,7 @@ static class Program
             menu.LimpiarEncabezado();
             menu.AgregarEncabezado($"Columna: {MenuParcelas.SeleccionX}");
             menu.AgregarEncabezado($"Fila: {MenuParcelas.SeleccionY}");
+            // Mostrar si la parcela esta o no libre
             if (parcela.Semilla == null)
             {
                 menu.AgregarEncabezado("Plantacion: Libre", ColorAdvertencia);
@@ -500,7 +504,7 @@ static class Program
             else
             {
                 menu.AgregarEncabezado($"Plantacion: {parcela.Semilla.Nombre}", ColorExito);
-                menu.AgregarEncabezado($"Ingresos: {parcela.Ingresos}", ColorExito);
+                menu.AgregarEncabezado($"Ingresos: ${parcela.Ingresos}", ColorExito);
                 menu.AgregarEncabezado($"Meses: {parcela.MesesSimulados} / {parcela.Semilla.Meses}  ({parcela.Semilla.Meses - parcela.MesesSimulados})", ColorExito);
             }
             ///////////// FIN ENCABEZADO ////////////////
@@ -512,10 +516,6 @@ static class Program
         } while (MenuParcelas.SeleccionX != -1);
     }
 
-    /// <summary>
-    /// Avanza la simulacion un mes: descuenta costos, hace crecer
-    /// las siembras, cosecha las parcelas listas y acumula ingresos.
-    /// </summary>
     static void AvanzarMes()
     {
         // Asegura que el usuario plante todas las semillas posible antes de avanzar de mes
@@ -589,9 +589,6 @@ static class Program
         Granja.AvanzarMes();
     }
 
-    /// <summary>
-    /// Muestra el resumen financiero al finalizar la simulacion.
-    /// </summary>
     static void MostrarResumenFinal()
     {
         Console.Clear();
@@ -623,16 +620,6 @@ static class Program
         Console.ResetColor();
     }
 
-    /// <summary>
-    /// Muestra un mensaje de error en color rojo sin cambiar la linea actual.
-    /// </summary>
-    /// <param name="mensajeError">Texto del error a mostrar.</param>
-    static void MostrarErrorLine(string mensajeError)
-    {
-        Console.ForegroundColor = ColorError;
-        Console.Write($"{LIMPIAR_LINEA} :: {mensajeError}\eM{LIMPIAR_LINEA}");
-        Console.ResetColor();
-    }
 
     /// <summary>
     /// Muestra el mensaje "Presione enter para continuar" y espera
