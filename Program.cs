@@ -19,7 +19,6 @@ static class Program
     static Menu MenuPrincipal = new([]);
     static MenuParcelas MenuParcelas = null!;
     const string LIMPIAR_LINEA = "\e[2K\r";
-    const string BORRAR_LINEA = "\e[2K\eM\r";
     const ConsoleColor ColorExito = ConsoleColor.Green;
     const ConsoleColor ColorError = ConsoleColor.Red;
     const ConsoleColor ColorAdvertencia = ConsoleColor.Yellow;
@@ -27,6 +26,23 @@ static class Program
 
     static void Main()
     {
+        Console.ForegroundColor = ColorInfo;
+        Console.WriteLine($"""
+                INSTRUCCIONES:
+                   - Utilize las teclas de flecha ({"\u2190\u2191\u2193\u2192"}) para navegar
+                   - Utilzie la tecla enter ({"\u21B5"}) para seleccionar
+                   - Utilize la tecla Q para salir de cualquier menu
+                     con excepcion del menu inical
+                -----
+                   - El juego termina si su Caja (dinero) llega a 
+                     menos de $0 
+                   - Su objetivo sera obtener la mayor cantidad de
+                     dinero segun las condiciones iniciales
+                   - Buena suerte!
+
+                """);
+        Console.ResetColor();
+
         ////////// MENU INICIAL //////////
         InicializarGranja();
 
@@ -56,7 +72,7 @@ static class Program
             {
                 ///////////// ENCABEZADO ////////////////
                 MenuPrincipal.LimpiarEncabezado();
-                MenuPrincipal.AgregarEncabezado($"Caja del Mes: ${CajaDelMes}");
+                MenuPrincipal.AgregarEncabezado($"Caja del mes: ${CajaDelMes}");
                 MenuPrincipal.AgregarEncabezado($"Caja: ${Granja.Caja}");
                 MenuPrincipal.AgregarEncabezado($"Costos: ${Granja.Costos}");
                 // Muestra los meses restantes
@@ -253,14 +269,6 @@ static class Program
         Console.ResetColor();
 
         Granja = new(empleados, sueldo, CapitalInicial, filas, columnas);
-
-    }
-    // Muestra un error sin saltar de linea
-    static void MostrarErrorLine(string mensajeError)
-    {
-        Console.ForegroundColor = ColorError;
-        Console.Write($"{LIMPIAR_LINEA} :: {mensajeError}\eM{LIMPIAR_LINEA}");
-        Console.ResetColor();
     }
 
     static void ComprarSemillas()
@@ -341,16 +349,16 @@ static class Program
                 continue;
 
             Console.ForegroundColor = ColorInfo;
-            Console.WriteLine("\n :: Ingrese Q para regresar al menu");
+            Console.WriteLine(" :: Ingrese Q para regresar a la tienda");
 
             while (true)
             {
                 Console.ResetColor();
                 Console.Write($"Ingrese la cantidad de {menu.OpcionSeleccionada}: ");
                 Console.ForegroundColor = ColorInfo;
-                string seleccion = Console.ReadLine() ?? "";
+                string seleccion = (Console.ReadLine() ?? "").ToUpper();
 
-                if (seleccion is "Q" or "q")
+                if (seleccion.Contains("Q"))
                 {
                     break;
                 }
@@ -390,12 +398,12 @@ static class Program
             //////////////// VERIFICACIONES ////////////////
             if (Granja.ParcelasLibres == 0)
             {
-                MenuPrincipal.SetMensajeEstado("No tienes parcelas para sembrar", ColorError);
+                MenuPrincipal.SetMensajeEstado("No tienes parcelas libres", ColorError);
                 return;
             }
             if (Granja.InventarioSemillas.Length == 0)
             {
-                MenuPrincipal.SetMensajeEstado("No tienes semillas para sembrar", ColorError);
+                MenuPrincipal.SetMensajeEstado("No tienes semillas", ColorError);
                 return;
             }
             //////////////// FIN VERIFICACIONES ////////////////
@@ -426,7 +434,10 @@ static class Program
             } while (!menu.Leer(false));
 
             if (menu.Seleccion == -1)
+            {
+                MenuPrincipal.SetMensajeEstado($"Quedan {Granja.SemillasRestantes} semilla/s", ColorAdvertencia);
                 break;
+            }
 
             ///////////// SELECCION DE PARCELA /////////////
             while (true)
@@ -436,17 +447,22 @@ static class Program
                 menu.LimpiarEncabezado();
                 menu.AgregarEncabezado($"Columna: {MenuParcelas.SeleccionX}");
                 menu.AgregarEncabezado($"Fila: {MenuParcelas.SeleccionY}");
-                menu.AgregarEncabezado($"Semilla: {semilla.Nombre}", ColorAdvertencia);
+                // Mostrar la cantidad restante
+                if (semilla.Cantidad > 0)
+                {
+                    menu.AgregarEncabezado($"Semilla: {semilla.Nombre}", ColorExito);
+                    menu.AgregarEncabezado($"Inventario: {semilla.Cantidad}", ColorExito);
+                }
+                else
+                {
+                    menu.AgregarEncabezado($"Semilla: {semilla.Nombre}", ColorError);
+                    menu.AgregarEncabezado("Sin semillas", ColorError);
+                }
                 // Mostrar si la parcela esta libre
                 if (parcela.Semilla == null)
                     menu.AgregarEncabezado("Parcela: Libre", ColorExito);
                 else
-                    menu.AgregarEncabezado("Parcela: Ocupada", ColorAdvertencia);
-                // Mostrar la cantidad restante
-                if (semilla.Cantidad > 0)
-                    menu.AgregarEncabezado($"Inventario: {semilla.Cantidad}", ColorExito);
-                else
-                    menu.AgregarEncabezado("Sin semillas", ColorError);
+                    menu.AgregarEncabezado($"Parcela: {parcela.Semilla.Nombre}", ColorAdvertencia);
                 ///////////////// FIN ENCABEZADO /////////////////
 
                 Console.Clear();
@@ -462,11 +478,12 @@ static class Program
                 }
                 if (semilla.Cantidad == 0)
                 {
+                    menu.SetMensajeEstado("No te quedan semillas", ColorError);
                     continue;
                 }
                 if (parcela.Semilla != null)
                 {
-                    menu.SetMensajeEstado($"No se puede sembrar sobre {parcela.Semilla.Nombre}", ColorError);
+                    menu.SetMensajeEstado("Parcela ocupada", ColorError);
                     continue;
                 }
 
@@ -542,7 +559,7 @@ static class Program
             colorIngresos = ColorAdvertencia;
         else
             colorIngresos = ColorExito;
-        menu.AgregarEncabezado($"Ingresos Esperados: ${Granja.IngresosEsperados}", colorIngresos);
+        menu.AgregarEncabezado($"Ingresos esperados: ${Granja.IngresosEsperados}", colorIngresos);
         // Asigna el color de la caja esperada
         ConsoleColor colorCajaEsperada;
         if (Granja.CajaEsperada <= 0)
@@ -626,8 +643,19 @@ static class Program
 
 
     /// <summary>
-    /// Muestra el mensaje "Presione enter para continuar" y espera
-    /// a que el usuario presione la tecla Enter.
+    /// Muestra un <paramref name="mensjaeError"> en color rojo
+    /// y mueve el cursor a la linea anterior.
+    /// </summary>
+    static void MostrarErrorLine(string mensajeError)
+    {
+        Console.ForegroundColor = ColorError;
+        Console.Write($"{LIMPIAR_LINEA} :: {mensajeError}\eM{LIMPIAR_LINEA}");
+        Console.ResetColor();
+    }
+
+    /// <summary>
+    /// Muestra un <paramref name="menssaje"> con un <paramref name="color">
+    /// y espera a que el usuario presione la tecla Enter.
     /// </summary>
     static void MostrarContinuar(string mensaje = "Presione enter para continuar", ConsoleColor color = ColorInfo)
     {
@@ -656,11 +684,11 @@ static class Program
             {
                 // Confirmacion
                 case ConsoleKey.Enter or ConsoleKey.Y:
-                    Console.Write(BORRAR_LINEA);
+                    Console.Write(LIMPIAR_LINEA);
                     return true;
                 // Negacion
                 case ConsoleKey.N or ConsoleKey.Q:
-                    Console.Write(BORRAR_LINEA + LIMPIAR_LINEA);
+                    Console.Write(LIMPIAR_LINEA);
                     return false;
                 // Ignora otras teclas
                 default:

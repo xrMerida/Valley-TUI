@@ -68,6 +68,21 @@ public class Granja
     }
 
     /// <summary>
+    /// Arreglo de semillas disponibles en el inventario.
+    /// </summary>
+    public int SemillasRestantes
+    {
+        get
+        {
+            int restantes = 0;
+            foreach (var semilla in InventarioSemillas)
+                restantes += semilla.Cantidad;
+
+            return restantes;
+        }
+    }
+
+    /// <summary>
     /// Cantidad de parcelas actualmente libres (sin siembra).
     /// </summary>
     public int ParcelasLibres
