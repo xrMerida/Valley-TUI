@@ -452,12 +452,6 @@ static class Program
                 Console.Clear();
                 menu.MostrarEncabezado();
                 MenuParcelas.MostrarSeleccion();
-                // Muestra un error cuando ya no quedan semillas
-                if (semilla.Cantidad == 0)
-                {
-                    MostrarContinuar($"Ya no quedan semillas de {semilla.Nombre}", ColorError);
-                    break;
-                }
 
                 if (!MenuParcelas.Leer(false))
                     continue;
@@ -465,6 +459,10 @@ static class Program
                 if (MenuParcelas.SeleccionX == -1)
                 {
                     break;
+                }
+                if (semilla.Cantidad == 0)
+                {
+                    continue;
                 }
                 if (parcela.Semilla != null)
                 {
@@ -592,7 +590,6 @@ static class Program
     static void MostrarResumenFinal()
     {
         Console.Clear();
-        Console.ResetColor();
         Console.WriteLine("""
                 ██╗   ██╗ █████╗ ██╗     ██╗     ███████╗██╗   ██╗    ████████╗██╗   ██╗██╗
                 ██║   ██║██╔══██╗██║     ██║     ██╔════╝╚██╗ ██╔╝    ╚══██╔══╝██║   ██║██║
@@ -602,6 +599,13 @@ static class Program
                   ╚═══╝  ╚═╝  ╚═╝╚══════╝╚══════╝╚══════╝   ╚═╝          ╚═╝    ╚═════╝ ╚═╝
 
                 """);
+        if (Granja.MesesSimulados == MesesTotal
+                && Granja.Caja > 0)
+        {
+            Console.WriteLine("""
+                    
+                    """);
+        }
         Console.ForegroundColor = ColorInfo;
         Console.WriteLine($"""
                              Capital Inicial: ${CapitalInicial}
