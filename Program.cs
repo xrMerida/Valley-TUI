@@ -512,9 +512,9 @@ static class Program
             // Mostrar si la parcela esta o no libre
             if (parcela.Semilla == null)
             {
-                menu.AgregarEncabezado("Plantacion: Libre", ColorAdvertencia);
-                menu.AgregarEncabezado("Ingresos: $0", ColorAdvertencia);
-                menu.AgregarEncabezado("Meses: 0 / 0", ColorAdvertencia);
+                menu.AgregarEncabezado("Plantacion: Libre", menu.ColorSecundario);
+                menu.AgregarEncabezado("Ingresos: $0", menu.ColorSecundario);
+                menu.AgregarEncabezado("Meses: 0 / 0", menu.ColorSecundario);
             }
             else
             {
@@ -574,6 +574,58 @@ static class Program
         Console.Clear();
         menu.MostrarEncabezado(false);
         MenuParcelas.Mostrar();
+
+        Console.ForegroundColor = menu.ColorSecundario;
+        Console.WriteLine("\eM-----");
+        decimal caja = Granja.Caja;
+        foreach (var parcela in Granja.Parcelas)
+        {
+            if (parcela.Semilla == null)
+                continue;
+
+            if (parcela.EsCosechable())
+            {
+                Console.ForegroundColor = ColorExito;
+                caja += parcela.Semilla.Ingresos;
+                Console.WriteLine($" {parcela.Semilla.Nombre} +${parcela.Semilla.Ingresos} : ${caja}");
+            }
+        }
+        caja -= Granja.Costos;
+        Console.ForegroundColor = ColorError;
+        Console.WriteLine($" Costos -${Granja.Costos} : ${caja}");
+        Console.ForegroundColor = menu.ColorSecundario;
+        Console.WriteLine("-----");
+        bool separarFinal = false;
+        foreach (var parcela in Granja.Parcelas)
+        {
+            if (parcela.Semilla == null)
+                continue;
+
+            if (parcela.Semilla.Meses - parcela.MesesSimulados == 2)
+            {
+                Console.ForegroundColor = ColorAdvertencia;
+                Console.WriteLine($" {parcela.Semilla.Nombre}: {parcela.MesesSimulados + 1} / {parcela.Semilla.Meses} ({parcela.Semilla.Meses - parcela.MesesSimulados})");
+                separarFinal = true;
+            }
+        }
+        Console.ResetColor();
+        foreach (var parcela in Granja.Parcelas)
+        {
+            if (parcela.Semilla == null)
+                continue;
+
+            if (parcela.Semilla.Meses - parcela.MesesSimulados > 2)
+            {
+                Console.WriteLine($" {parcela.Semilla.Nombre}: {parcela.MesesSimulados + 1} / {parcela.Semilla.Meses} ({parcela.Semilla.Meses - parcela.MesesSimulados - 1})");
+                separarFinal = true;
+            }
+        }
+        if (separarFinal)
+        {
+            Console.ForegroundColor = menu.ColorSecundario;
+            Console.WriteLine("-----");
+        }
+        Console.WriteLine();
 
         if (!PreguntarContinuar("Avanzar de mes"))
         {
