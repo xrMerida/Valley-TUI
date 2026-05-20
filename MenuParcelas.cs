@@ -26,6 +26,9 @@ public class MenuParcelas(Parcela[,] parcelas)
 
     // Secuencia de escape que elimina la linea actual
     private const string LIMPIAR_LINEA = "\e[2K\r";
+    private const ConsoleColor Verde = ConsoleColor.Green;
+    private const ConsoleColor Gris = ConsoleColor.DarkGray;
+    private const ConsoleColor Amarillo = ConsoleColor.Yellow;
 
     /// <summary>
     /// Muestra la cuadricula completa de parcelas sin resaltar ninguna.
@@ -43,10 +46,19 @@ public class MenuParcelas(Parcela[,] parcelas)
                 Parcela parcela = Parcelas[i, j];
 
                 // Colorea segun el estado de la parcela
-                if (parcela.EsCosechable())
-                    Console.ForegroundColor = ConsoleColor.Green;
-                else if (parcela.Semilla != null)
-                    Console.ForegroundColor = ConsoleColor.Yellow;
+                if (parcela.Semilla == null)
+                {
+                    Console.ForegroundColor = Gris;
+                }
+                else // si tiene una semilla
+                {
+                    // Si se cosechara siguiente mes verde
+                    if (parcela.EsCosechable())
+                        Console.ForegroundColor = Verde;
+                    // Si le quedan 2 meses amrillo
+                    else if (parcela.Semilla.Meses - parcela.MesesSimulados == 2)
+                        Console.ForegroundColor = Amarillo;
+                }
 
                 // Muestra un espacio vacio o las iniciales de la planta
                 if (parcela.Semilla == null)
@@ -78,11 +90,15 @@ public class MenuParcelas(Parcela[,] parcelas)
                 // Resalta la parcela seleccionada
                 if (i == SeleccionY && j == SeleccionX)
                 {
-                    Console.ForegroundColor = ConsoleColor.Green;
+                    Console.ForegroundColor = Verde;
                     if (parcela.Semilla == null)
+                    {
                         Console.Write("[  --  ]");
+                    }
                     else
+                    {
                         Console.Write($"[  {parcela.Semilla.Nombre[..2].ToUpper()}  ]");
+                    }
                 }
                 // Muestra la semilla plantada (dos letras)
                 else if (parcela.Semilla != null)
@@ -92,6 +108,7 @@ public class MenuParcelas(Parcela[,] parcelas)
                 // Parcela vacia
                 else
                 {
+                    Console.ForegroundColor = Gris;
                     Console.Write(" [ -- ] ");
                 }
             }
@@ -114,7 +131,7 @@ public class MenuParcelas(Parcela[,] parcelas)
     /// </returns>
     public bool Leer(bool confirmarSalida)
     {
-        Console.ForegroundColor = ConsoleColor.DarkGray;
+        Console.ForegroundColor = Gris;
         Console.Write($"{LIMPIAR_LINEA}      \u2190\u2191\u2193\u2192 navegar    \u21B5 seleccionar    Q salir  ");
         Console.ResetColor();
         ConsoleKeyInfo keyInfo = Console.ReadKey(true);
@@ -125,7 +142,7 @@ public class MenuParcelas(Parcela[,] parcelas)
                 if (confirmarSalida)
                 {
                     // Solicita confirmacion antes de salir
-                    Console.ForegroundColor = ConsoleColor.DarkYellow;
+                    Console.ForegroundColor = Amarillo;
                     Console.Write($"{LIMPIAR_LINEA}   :  Salir ? [Y/n]  ");
                     Console.ResetColor();
 
